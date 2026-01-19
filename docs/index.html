@@ -1454,7 +1454,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
           <div class="card-title">⚠️ Drug Interaction Warnings</div>
           <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn" id="toggleFdaEvidence" onclick="toggleFdaEvidence()" aria-pressed="true" style="font-size:0.8125rem;padding:0.375rem 0.75rem">FDA label scan: ON</button>
+            <button class="btn" id="toggleFdaEvidence" onclick="toggleFdaEvidence()" aria-pressed="true" style="display:none;font-size:0.8125rem;padding:0.375rem 0.75rem">FDA label scan: ON</button>
             <button class="btn" onclick="checkInteractions()" title="Force an immediate re-scan (auto-refresh also runs when your list changes)" style="font-size:0.8125rem;padding:0.375rem 0.75rem">🔄 Re-scan</button>
           </div>
         </div>
@@ -5155,6 +5155,22 @@
       ['st_johns_wort', 'ssri', '🚨 Serotonin syndrome risk - avoid combining St. John\'s wort with SSRIs.'],
       ['st_johns_wort', 'snri', '🚨 Serotonin syndrome risk - avoid combining St. John\'s wort with SNRIs.'],
       ['st_johns_wort', 'birth control', '⚠️ St. John\'s wort can reduce hormonal birth control effectiveness.'],
+
+      // Enzyme Inducers + Contraceptives (CRITICAL for pregnancy prevention)
+      ['rifampin', 'birth control', '🚨 CRITICAL: Rifampin significantly reduces birth control effectiveness - use backup contraception and consult doctor immediately.'],
+      ['rifampicin', 'birth control', '🚨 CRITICAL: Rifampicin significantly reduces birth control effectiveness - use backup contraception and consult doctor immediately.'],
+      ['carbamazepine', 'birth control', '🚨 CRITICAL: Carbamazepine reduces birth control effectiveness - use backup contraception and consult doctor.'],
+      ['phenytoin', 'birth control', '🚨 CRITICAL: Phenytoin reduces birth control effectiveness - use backup contraception.'],
+      ['phenobarbital', 'birth control', '🚨 CRITICAL: Phenobarbital reduces birth control effectiveness - use backup contraception.'],
+      ['rifampin', 'contraceptives', '🚨 CRITICAL: Rifampin significantly reduces contraceptive effectiveness - use backup method.'],
+      ['rifampicin', 'contraceptives', '🚨 CRITICAL: Rifampicin significantly reduces contraceptive effectiveness - use backup method.'],
+      ['carbamazepine', 'contraceptives', '🚨 CRITICAL: Carbamazepine reduces contraceptive effectiveness - use backup method.'],
+
+      // Rifampin interactions (enzyme inducer)
+      ['rifampin', 'prednisone', '⚠️ Rifampin reduces prednisone effectiveness - may need dose adjustment.'],
+      ['rifampin', 'prednisolone', '⚠️ Rifampin reduces prednisolone effectiveness - may need dose adjustment.'],
+      ['rifampin', 'warfarin', '⚠️ Rifampin reduces warfarin effectiveness - requires close INR monitoring.'],
+      ['rifampin', 'statin', '⚠️ Rifampin may reduce statin effectiveness.'],
 
       // Blood Thinners
       ['warfarin', 'aspirin', '🚨 CRITICAL: Severe bleeding risk - requires immediate medical supervision'],
