@@ -1389,23 +1389,8 @@
           </div>
           <div class="form-group">
             <label>Dosage</label>
-            <div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem">
-              <input type="number" id="medDosage" placeholder="e.g., 81" oninput="checkDosageRealtime()" step="0.01" min="0">
-              <select id="medDosageUnit" style="min-width:90px">
-                <option value="mg">mg</option>
-                <option value="mcg">mcg</option>
-                <option value="g">g</option>
-                <option value="mL">mL</option>
-                <option value="IU">IU</option>
-                <option value="units">units</option>
-                <option value="tablet">tablet(s)</option>
-                <option value="capsule">capsule(s)</option>
-                <option value="drops">drop(s)</option>
-                <option value="spray">spray(s)</option>
-                <option value="patch">patch(es)</option>
-                <option value="puff">puff(s)</option>
-              </select>
-            </div>
+            <input type="text" id="medDosage" placeholder="e.g., 81 mg, 500 mL, 2 tablets" oninput="checkDosageRealtime()">
+            <div id="dosageDetected" style="margin-top:0.375rem;font-size:0.75rem;color:var(--primary);font-weight:500"></div>
             <div id="dosageWarning" style="margin-top:0.5rem;font-size:0.8125rem;"></div>
           </div>
           <div class="form-group">
@@ -2492,15 +2477,15 @@
       
       if (type === 'prescription') {
         nameInput.placeholder = 'e.g., Lisinopril, Metformin, Sertraline';
-        dosageInput.placeholder = 'e.g., 10, 500, 25';
+        dosageInput.placeholder = 'e.g., 10 mg, 500 mg, 25 mg';
         hint.textContent = 'Medications requiring a doctor\'s prescription (e.g., Lisinopril, Metformin)';
       } else if (type === 'otc') {
         nameInput.placeholder = 'e.g., Aspirin, Tylenol, Ibuprofen';
-        dosageInput.placeholder = 'e.g., 81, 325, 200';
+        dosageInput.placeholder = 'e.g., 81 mg, 325 mg, 200 mg';
         hint.textContent = 'Over-the-counter medications available without prescription (e.g., Aspirin, Tylenol)';
       } else {
         nameInput.placeholder = 'e.g., Vitamin D, Fish Oil, Magnesium';
-        dosageInput.placeholder = 'e.g., 1000, 500, 250';
+        dosageInput.placeholder = 'e.g., 1000 IU, 500 mg, 250 mg';
         hint.textContent = 'Vitamins, minerals, herbs, or other dietary supplements';
       }
     }
@@ -4085,52 +4070,92 @@
     // DOSAGE VALIDATION FUNCTIONS
     // ============================================
     
-    // Real-time dosage validation
+    // Real-time dosage validation with smart unit detection
     function checkDosageRealtime() {
       const nameInput = document.getElementById('medName');
       const dosageInput = document.getElementById('medDosage');
-      const dosageUnitInput = document.getElementById('medDosageUnit');
+      const detectedBox = document.getElementById('dosageDetected');
       const warningBox = document.getElementById('dosageWarning');
       
-      if (!nameInput || !dosageInput || !dosageUnitInput || !warningBox) return;
+      if (!nameInput || !dosageInput || !warningBox) return;
       
       const medName = nameInput.value.trim();
-      const dosageNum = dosageInput.value.trim();
-      const dosageUnit = dosageUnitInput.value;
+      const dosageStr = dosageInput.value.trim();
       
-      if (!medName || !dosageNum) {
+      if (!dosageStr) {
+        if (detectedBox) detectedBox.innerHTML = '';
         warningBox.innerHTML = '';
         return;
       }
       
-      const dosage = `${dosageNum} ${dosageUnit}`;
-      const validation = validateDosage(medName, dosage);
+      // Parse the dosage to detect unit
+      const parsed = parseDosage(dosageStr);
       
-      if (validation.warnings && validation.warnings.length > 0) {
-        const criticalWarnings = validation.warnings.filter(w => w.level === 'critical' || w.level === 'danger');
-        if (criticalWarnings.length > 0) {
-          warningBox.innerHTML = criticalWarnings.map(w => 
-            `<div style="padding:0.75rem;background:#fee;border:2px solid #d63031;border-radius:6px;color:#2d3436;font-weight:600">${w.message}</div>`
-          ).join('');
+      if (parsed) {
+        // Show what was detected
+        if (detectedBox) {
+          detectedBox.innerHTML = `✓ Detected: <strong>${parsed.amount} ${parsed.unit}</strong>`;
+        }
+        
+        // Validate if medication name is entered
+        if (medName) {
+          const validation = validateDosage(medName, dosageStr);
+          
+          if (validation.warnings && validation.warnings.length > 0) {
+            const criticalWarnings = validation.warnings.filter(w => w.level === 'critical' || w.level === 'danger');
+            if (criticalWarnings.length > 0) {
+              warningBox.innerHTML = criticalWarnings.map(w => 
+                `<div style="padding:0.75rem;background:#fee;border:2px solid #d63031;border-radius:6px;color:#2d3436;font-weight:600">${w.message}</div>`
+              ).join('');
+            } else {
+              const topWarning = validation.warnings[0];
+              warningBox.innerHTML = `<div style="padding:0.5rem;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;color:#2d3436;font-size:0.8125rem">${topWarning.message}</div>`;
+            }
+          } else {
+            warningBox.innerHTML = '';
+          }
         } else {
-          const topWarning = validation.warnings[0];
-          warningBox.innerHTML = `<div style="padding:0.5rem;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;color:#2d3436;font-size:0.8125rem">${topWarning.message}</div>`;
+          warningBox.innerHTML = '';
         }
       } else {
+        // Couldn't parse - show helpful message
+        if (detectedBox) {
+          detectedBox.innerHTML = '<span style="color:var(--warning)">⚠ Please include a unit (e.g., mg, mL, tablets)</span>';
+        }
         warningBox.innerHTML = '';
       }
     }
     
     function parseDosage(dosageStr) {
-      // Extract number and unit from dosage string
-      const match = dosageStr.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|µg|g|iu|ml|units?|tablets?|capsules?|drops?|sprays?|patches?|puffs?)?/i);
+      // Extract number and unit from dosage string (supports "81mg", "81 mg", "2 tablets", etc.)
+      const match = dosageStr.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|µg|ug|g|iu|ml|cc|units?|unit|tablets?|tab|capsules?|cap|drops?|sprays?|spray|patches?|patch|puffs?|puff)?/i);
       if (!match) return null;
       
       let amount = parseFloat(match[1]);
       let unit = (match[2] || 'mg').toLowerCase();
       
       // Normalize unit names
-      if (unit === 'µg') unit = 'mcg';
+      const unitMap = {
+        'µg': 'mcg',
+        'ug': 'mcg',
+        'cc': 'mL',
+        'unit': 'units',
+        'tab': 'tablet',
+        'tablets': 'tablet',
+        'cap': 'capsule',
+        'capsules': 'capsule',
+        'drops': 'drop',
+        'sprays': 'spray',
+        'patches': 'patch',
+        'puffs': 'puff'
+      };
+      
+      unit = unitMap[unit] || unit;
+      
+      // Pluralize if amount > 1
+      if (amount > 1 && ['tablet', 'capsule', 'drop', 'spray', 'patch', 'puff'].includes(unit)) {
+        unit = unit + 's';
+      }
       
       return { amount, unit, originalUnit: unit };
     }
@@ -4431,9 +4456,7 @@
       const nameInput = document.getElementById('medName');
       const name = nameInput.value.trim();
       const rxcui = nameInput.getAttribute('data-rxcui') || null;
-      const dosageNum = document.getElementById('medDosage').value.trim();
-      const dosageUnit = document.getElementById('medDosageUnit').value;
-      const dosage = dosageNum ? `${dosageNum} ${dosageUnit}` : '';
+      const dosage = document.getElementById('medDosage').value.trim();
       const time = document.getElementById('medTime').value;
       
       console.log('Form values:', { type, name, dosage, time });
@@ -4694,13 +4717,13 @@
       nameInput.value = '';
       nameInput.removeAttribute('data-rxcui');
       const dosageInput = document.getElementById('medDosage');
-      const dosageUnitInput = document.getElementById('medDosageUnit');
+      const detectedBox = document.getElementById('dosageDetected');
       const infoBox = document.getElementById('medInfoBox');
       const warningBox = document.getElementById('dosageWarning');
 
       dosageInput.value = '';
-      dosageUnitInput.value = 'mg'; // Reset to default
       dosageInput.classList.remove('valid');
+      if (detectedBox) detectedBox.innerHTML = '';
       if (infoBox) infoBox.innerHTML = '';
       if (warningBox) warningBox.innerHTML = '';
 
