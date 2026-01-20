@@ -439,6 +439,47 @@
       grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
       gap:1rem;
     }
+    .med-tabs{
+      display:flex;
+      gap:0.5rem;
+      border-bottom:2px solid var(--border);
+      margin-bottom:1.5rem;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .med-tab{
+      background:transparent;
+      border:none;
+      padding:0.75rem 1.25rem;
+      font-size:0.9375rem;
+      font-weight:500;
+      color:var(--text-muted);
+      cursor:pointer;
+      border-bottom:2px solid transparent;
+      margin-bottom:-2px;
+      white-space:nowrap;
+      transition:var(--transition);
+    }
+    .med-tab:hover{
+      color:var(--text);
+      background:var(--bg-subtle);
+    }
+    .med-tab.active{
+      color:var(--primary);
+      border-bottom-color:var(--primary);
+      font-weight:600;
+    }
+    .med-tab-content{
+      display:none;
+      animation:fadeIn 0.3s ease;
+    }
+    .med-tab-content.active{
+      display:block;
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(5px)}
+      to{opacity:1;transform:translateY(0)}
+    }
     .med-card{
       background:var(--card);
       padding:1.125rem;
@@ -1436,32 +1477,47 @@
         <button class="btn btn-primary" onclick="addMedication()">➕ Add to Tracker</button>
       </div>
 
+      <!-- Medication Tabs -->
       <div class="card">
-        <div class="card-title">📋 Today's Medications</div>
-        <div class="med-grid" id="medList"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🌿 Supplements</div>
-        <div class="med-grid" id="supplementList"></div>
-      </div>
-      
-      <div class="card">
-        <div class="card-title">📊 Medication History (Last 7 Days)</div>
-        <div id="medicationHistory"></div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-          <div class="card-title">⚠️ Drug Interaction Warnings</div>
-          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn" id="toggleFdaEvidence" onclick="toggleFdaEvidence()" aria-pressed="true" style="display:none;font-size:0.8125rem;padding:0.375rem 0.75rem">FDA label scan: ON</button>
-            <button class="btn" onclick="checkInteractions()" title="Force an immediate re-scan (auto-refresh also runs when your list changes)" style="font-size:0.8125rem;padding:0.375rem 0.75rem">🔄 Re-scan</button>
-          </div>
+        <div class="med-tabs">
+          <button class="med-tab active" onclick="switchMedicationTab('today')" data-tab="today">
+            📋 Today's Medications
+          </button>
+          <button class="med-tab" onclick="switchMedicationTab('supplements')" data-tab="supplements">
+            🌿 Supplements
+          </button>
+          <button class="med-tab" onclick="switchMedicationTab('history')" data-tab="history">
+            📊 History
+          </button>
+          <button class="med-tab" onclick="switchMedicationTab('interactions')" data-tab="interactions">
+            ⚠️ Interactions
+          </button>
         </div>
 
-        <div id="interactionWarnings">
-          <div class="insight" style="color:var(--text-secondary)">⏳ Checking for drug interactions...</div>
+        <!-- Tab Content -->
+        <div class="med-tab-content active" id="tab-today">
+          <div class="med-grid" id="medList"></div>
+        </div>
+
+        <div class="med-tab-content" id="tab-supplements">
+          <div class="med-grid" id="supplementList"></div>
+        </div>
+
+        <div class="med-tab-content" id="tab-history">
+          <div id="medicationHistory"></div>
+        </div>
+
+        <div class="med-tab-content" id="tab-interactions">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+            <div style="font-weight:600;font-size:1rem">⚠️ Drug Interaction Warnings</div>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              <button class="btn" id="toggleFdaEvidence" onclick="toggleFdaEvidence()" aria-pressed="true" style="display:none;font-size:0.8125rem;padding:0.375rem 0.75rem">FDA label scan: ON</button>
+              <button class="btn" onclick="checkInteractions()" title="Force an immediate re-scan" style="font-size:0.8125rem;padding:0.375rem 0.75rem">🔄 Re-scan</button>
+            </div>
+          </div>
+          <div id="interactionWarnings">
+            <div class="insight" style="color:var(--text-secondary)">⏳ Checking for drug interactions...</div>
+          </div>
         </div>
       </div>
       
@@ -4585,6 +4641,23 @@
       }
     }
 
+    // Switch between medication tabs
+    function switchMedicationTab(tabName) {
+      // Remove active class from all tabs and content
+      document.querySelectorAll('.med-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.med-tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Add active class to selected tab and content
+      const selectedTab = document.querySelector(`.med-tab[data-tab="${tabName}"]`);
+      const selectedContent = document.getElementById(`tab-${tabName}`);
+      
+      if (selectedTab) selectedTab.classList.add('active');
+      if (selectedContent) selectedContent.classList.add('active');
+      
+      // Save active tab preference
+      localStorage.setItem('stepsync_activeTab', tabName);
+    }
+
     // Add new medication definition
     function addMedication() {
       console.log('🔵 addMedication() called');
@@ -5922,6 +5995,10 @@
     loadMoodHistory();
     loadMedications();
     loadMedicationHistory(); // Load history view
+    
+    // Restore active tab preference
+    const activeTab = localStorage.getItem('stepsync_activeTab') || 'today';
+    switchMedicationTab(activeTab);
     
     // Migrate RxCUI codes for existing medications, then check interactions
     (async () => {
