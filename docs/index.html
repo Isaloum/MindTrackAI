@@ -458,7 +458,8 @@
       border-bottom:2px solid transparent;
       margin-bottom:-2px;
       white-space:nowrap;
-      transition:var(--transition);
+      transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius:8px 8px 0 0;
     }
     .med-tab:hover{
       color:var(--text);
@@ -468,16 +469,17 @@
       color:var(--primary);
       border-bottom-color:var(--primary);
       font-weight:600;
+      background:var(--bg-subtle);
     }
     .med-tab-content{
       display:none;
-      animation:fadeIn 0.3s ease;
     }
     .med-tab-content.active{
       display:block;
+      animation:fadeInSlide 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    @keyframes fadeIn{
-      from{opacity:0;transform:translateY(5px)}
+    @keyframes fadeInSlide{
+      from{opacity:0;transform:translateY(10px)}
       to{opacity:1;transform:translateY(0)}
     }
     .med-card{
@@ -4690,6 +4692,12 @@
       // Check if dosage contains ANY number at all
       if (!/\d/.test(dosage)) {
         return alert('❌ INVALID DOSAGE\n\nDosage must contain a number (e.g., "500mg", "1 tablet", "5ml").\n\nYou entered: "' + dosage + '"');
+      }
+      
+      // CRITICAL: Check if dosage has a unit (not just a number)
+      const parsedDosage = parseDosage(dosage);
+      if (!parsedDosage || !parsedDosage.unit) {
+        return alert('❌ MISSING UNIT\n\nPlease include a unit with your dosage.\n\nExamples:\n• 500 mg (not just "500")\n• 2 tablets (not just "2")\n• 10 mL (not just "10")\n\nYou entered: "' + dosage + '"');
       }
       
       // CRITICAL: Validate medication type matches selection
