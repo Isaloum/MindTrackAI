@@ -2857,8 +2857,13 @@
         document.getElementById('medName').setAttribute('data-medication', JSON.stringify(medication));
         document.getElementById('medName').setAttribute('data-rxcui', medication.rxnormId || '');
         
-        // Populate dosage dropdown dynamically
-        populateDosageDropdown(medication);
+        // Auto-populate dosage with most common/first dosage
+        const dosageInput = document.getElementById('medDosage');
+        if (dosageInput && medication.dosages && medication.dosages.length > 0) {
+          dosageInput.value = medication.dosages[0]; // Fill in most common dosage
+          checkDosageRealtime(); // Trigger validation to show detected dosage
+          console.log('✓ Auto-filled dosage:', medication.dosages[0]);
+        }
         
         // Display medication information
         displayMedicationInfo(medication);
@@ -2866,6 +2871,87 @@
       } catch (error) {
         console.error('❌ Error selecting medication:', error);
       }
+    }
+    
+    // Suggest common dosage based on medication name
+    function suggestCommonDosage(medicationName) {
+      const name = medicationName.toLowerCase().trim();
+      
+      // Common medication dosages database
+      const commonDosages = {
+        // Blood Pressure
+        'lisinopril': '10 mg',
+        'amlodipine': '5 mg',
+        'losartan': '50 mg',
+        'metoprolol': '50 mg',
+        'atenolol': '50 mg',
+        'hydrochlorothiazide': '25 mg',
+        
+        // Cholesterol
+        'atorvastatin': '10 mg',
+        'simvastatin': '20 mg',
+        'rosuvastatin': '10 mg',
+        
+        // Diabetes
+        'metformin': '500 mg',
+        'glipizide': '5 mg',
+        
+        // Thyroid
+        'levothyroxine': '50 mcg',
+        'synthroid': '50 mcg',
+        
+        // Pain/Anti-inflammatory
+        'aspirin': '81 mg',
+        'ibuprofen': '200 mg',
+        'naproxen': '220 mg',
+        'acetaminophen': '500 mg',
+        'tylenol': '500 mg',
+        
+        // Antidepressants
+        'sertraline': '50 mg',
+        'escitalopram': '10 mg',
+        'fluoxetine': '20 mg',
+        'citalopram': '20 mg',
+        'bupropion': '150 mg',
+        'venlafaxine': '75 mg',
+        
+        // Antibiotics
+        'amoxicillin': '500 mg',
+        'azithromycin': '250 mg',
+        'doxycycline': '100 mg',
+        
+        // Supplements
+        'vitamin d': '1000 IU',
+        'vitamin d3': '1000 IU',
+        'vitamin c': '500 mg',
+        'fish oil': '1000 mg',
+        'omega 3': '1000 mg',
+        'calcium': '500 mg',
+        'magnesium': '250 mg',
+        'iron': '65 mg',
+        'vitamin b12': '1000 mcg',
+        'folic acid': '400 mcg',
+        'multivitamin': '1 tablet',
+        
+        // Acid reflux
+        'omeprazole': '20 mg',
+        'pantoprazole': '40 mg',
+        'famotidine': '20 mg',
+      };
+      
+      // Try exact match first
+      if (commonDosages[name]) {
+        return commonDosages[name];
+      }
+      
+      // Try partial match
+      for (const [med, dosage] of Object.entries(commonDosages)) {
+        if (name.includes(med) || med.includes(name)) {
+          return dosage;
+        }
+      }
+      
+      return null; // No suggestion available
     }
     
     // Populate dosage dropdown based on selected medication
@@ -2986,6 +3072,18 @@
       document.getElementById('medSearchResults').style.display = 'none';
       // Store RxCUI in a hidden field for later use
       document.getElementById('medName').setAttribute('data-rxcui', rxcui);
+      
+      // Try to auto-suggest a common dosage based on medication name
+      const dosageInput = document.getElementById('medDosage');
+      if (dosageInput) {
+        const suggestedDosage = suggestCommonDosage(name);
+        if (suggestedDosage) {
+          dosageInput.value = suggestedDosage;
+          checkDosageRealtime();
+          console.log('✓ Auto-suggested dosage for', name, ':', suggestedDosage);
+        }
+      }
+      
       await fetchDrugInformation(rxcui, name);
     }
     
