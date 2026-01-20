@@ -2861,8 +2861,9 @@
         const dosageInput = document.getElementById('medDosage');
         if (dosageInput && medication.dosages && medication.dosages.length > 0) {
           dosageInput.value = medication.dosages[0]; // Fill in most common dosage
-          checkDosageRealtime(); // Trigger validation to show detected dosage
           console.log('✓ Auto-filled dosage:', medication.dosages[0]);
+          // Trigger validation to show detected dosage
+          setTimeout(() => checkDosageRealtime(), 100);
         }
         
         // Display medication information
@@ -3079,8 +3080,9 @@
         const suggestedDosage = suggestCommonDosage(name);
         if (suggestedDosage) {
           dosageInput.value = suggestedDosage;
-          checkDosageRealtime();
           console.log('✓ Auto-suggested dosage for', name, ':', suggestedDosage);
+          // Trigger validation after a small delay to ensure input is updated
+          setTimeout(() => checkDosageRealtime(), 100);
         }
       }
       
@@ -5414,31 +5416,6 @@
     // The proper async checkInteractions() function is defined at line 3062
     // It uses the National Library of Medicine RxNorm API for comprehensive interaction checking
     
-    // Real-time dosage validation as user types
-    function checkDosageRealtime() {
-      const name = document.getElementById('medName').value.trim();
-      const dosage = document.getElementById('medDosage').value.trim();
-      const warningDiv = document.getElementById('dosageWarning');
-      
-      if (!name || !dosage) {
-        warningDiv.innerHTML = '';
-        return;
-      }
-      
-      const validation = validateDosage(name, dosage);
-      
-      if (validation.warnings && validation.warnings.length > 0) {
-        const warning = validation.warnings[0]; // Show first/most important warning
-        let color = '#3b82f6'; // blue for info
-        if (warning.level === 'danger') color = '#f59e0b'; // orange
-        if (warning.level === 'critical') color = '#ef4444'; // red
-        
-        warningDiv.innerHTML = `<div style="padding:0.5rem;background:${color}22;border-left:3px solid ${color};border-radius:4px;color:${color}">${warning.message}</div>`;
-      } else {
-        warningDiv.innerHTML = '<div style="color:#10b981">✅ Dosage appears safe</div>';
-      }
-    }
-
     // Sleep Tracker
     function saveSleep() {
       const bedtime = document.getElementById('sleepBedtime').value;
