@@ -2918,11 +2918,37 @@
         'escitalopram': '10 mg',
         'fluoxetine': '20 mg',
         'citalopram': '20 mg',
+        'paroxetine': '20 mg',
         'bupropion': '150 mg',
         'venlafaxine': '75 mg',
+        'duloxetine': '60 mg',
         
         // Antibiotics
         'amoxicillin': '500 mg',
+        'azithromycin': '250 mg',
+        'doxycycline': '100 mg',
+        'ciprofloxacin': '500 mg',
+        'levofloxacin': '500 mg',
+        'cephalexin': '500 mg',
+        'rifampin': '300 mg',
+        'rifampicin': '300 mg',
+        
+        // Heart/Blood Pressure - Calcium Channel Blockers
+        'verapamil': '80 mg',
+        'diltiazem': '120 mg',
+        'nifedipine': '30 mg',
+        'amlodipine': '5 mg',
+        
+        // Beta Blockers
+        'metoprolol': '50 mg',
+        'atenolol': '50 mg',
+        'propranolol': '40 mg',
+        'carvedilol': '6.25 mg',
+        
+        // Steroids
+        'prednisone': '5 mg',
+        'prednisolone': '5 mg',
+        'dexamethasone': '4 mg',
         'azithromycin': '250 mg',
         'doxycycline': '100 mg',
         
@@ -4233,11 +4259,16 @@
     
     function parseDosage(dosageStr) {
       // Extract number and unit from dosage string (supports "81mg", "81 mg", "2 tablets", etc.)
-      const match = dosageStr.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|µg|ug|g|iu|ml|cc|units?|unit|tablets?|tab|capsules?|cap|drops?|sprays?|spray|patches?|patch|puffs?|puff)?/i);
-      if (!match) return null;
+      const match = dosageStr.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|µg|ug|g|iu|ml|cc|units?|unit|tablets?|tab|capsules?|cap|drops?|sprays?|spray|patches?|patch|puffs?|puff)/i);
+      
+      // CRITICAL: If no unit found AT ALL, return null (reject pure numbers)
+      if (!match || !match[2]) {
+        console.log('parseDosage: No unit found in dosage string:', dosageStr);
+        return null;
+      }
       
       let amount = parseFloat(match[1]);
-      let unit = (match[2] || 'mg').toLowerCase();
+      let unit = match[2].toLowerCase();
       
       // Normalize unit names
       const unitMap = {
