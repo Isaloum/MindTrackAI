@@ -2590,9 +2590,14 @@
       const query = medNameInput.value.trim();
       console.log('Search query:', query, 'Length:', query.length);
       
+      // CRITICAL: Always clear the info box when user types a new search
+      const infoBox = document.getElementById('medInfoBox');
+      if (infoBox) infoBox.innerHTML = '';
+      
       if (query.length < 2) {
         console.log('Query too short (<2 chars), hiding dropdown');
         resultsContainer.style.display = 'none';
+        resultsList.innerHTML = ''; // Clear old results
         return;
       }
       
