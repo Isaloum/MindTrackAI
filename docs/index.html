@@ -460,6 +460,7 @@
       white-space:nowrap;
       transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius:8px 8px 0 0;
+      position:relative;
     }
     .med-tab:hover{
       color:var(--text);
@@ -470,6 +471,35 @@
       border-bottom-color:var(--primary);
       font-weight:600;
       background:var(--bg-subtle);
+    }
+    .med-tab.has-warnings{
+      color:#ef4444;
+    }
+    .med-tab.has-warnings:not(.active){
+      animation:tabPulse 2s ease-in-out infinite;
+    }
+    .interaction-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:20px;
+      height:20px;
+      padding:0 6px;
+      margin-left:6px;
+      background:#ef4444;
+      color:white;
+      font-size:0.7rem;
+      font-weight:700;
+      border-radius:10px;
+      animation:badgePulse 2s ease-in-out infinite;
+    }
+    @keyframes tabPulse{
+      0%, 100%{opacity:1}
+      50%{opacity:0.7}
+    }
+    @keyframes badgePulse{
+      0%, 100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0.7)}
+      50%{transform:scale(1.1);box-shadow:0 0 0 6px rgba(239,68,68,0)}
     }
     .med-tab-content{
       display:none;
@@ -1491,7 +1521,7 @@
             📊 History
           </button>
           <button class="med-tab" onclick="switchMedicationTab('interactions')" data-tab="interactions">
-            ⚠️ Interactions
+            ⚠️ Interactions<span class="interaction-badge" id="interactionBadge" style="display:none"></span>
           </button>
         </div>
 
@@ -4084,8 +4114,12 @@
           
           if (!mergedPairs || mergedPairs.length === 0) {
             container.innerHTML = `${scanSummaryHtml}<div class="insight positive">✅ No dangerous interactions found for your current medications. Always confirm with your healthcare provider.</div>`;
+            updateInteractionBadge(0); // No warnings
             return;
           }
+          
+          // Update badge with warning count
+          updateInteractionBadge(mergedPairs.length);
           
           // Map severity to colors and icons
           const getSeverityStyle = (severity) => {
@@ -4218,6 +4252,7 @@
           if (container) {
             container.innerHTML = `<div class="insight negative">❌ Unable to check interactions right now. Please try again. (${String(error?.message || error)})</div>`;
           }
+          updateInteractionBadge(0); // Clear badge on error
         }
       }
 
@@ -4649,8 +4684,48 @@
       if (selectedTab) selectedTab.classList.add('active');
       if (selectedContent) selectedContent.classList.add('active');
       
+      // If user opens interactions tab, mark as viewed
+      if (tabName === 'interactions') {
+        markInteractionsAsViewed();
+      }
+      
       // Save active tab preference
       localStorage.setItem('stepsync_activeTab', tabName);
+    }
+    
+    // Update interaction badge with warning count
+    function updateInteractionBadge(warningCount) {
+      const badge = document.getElementById('interactionBadge');
+      const tab = document.querySelector('.med-tab[data-tab="interactions"]');
+      
+      if (!badge || !tab) return;
+      
+      if (warningCount > 0) {
+        badge.textContent = warningCount;
+        badge.style.display = 'inline-flex';
+        tab.classList.add('has-warnings');
+        // Store current warning count
+        localStorage.setItem('stepsync_interactionCount', warningCount);
+      } else {
+        badge.style.display = 'none';
+        tab.classList.remove('has-warnings');
+        localStorage.removeItem('stepsync_interactionCount');
+        localStorage.removeItem('stepsync_interactionsViewed');
+      }
+    }
+    
+    // Mark interactions as viewed (stops animation)
+    function markInteractionsAsViewed() {
+      const currentCount = localStorage.getItem('stepsync_interactionCount');
+      if (currentCount) {
+        localStorage.setItem('stepsync_interactionsViewed', currentCount);
+      }
+      // Stop pulse animation by removing class
+      const tab = document.querySelector('.med-tab[data-tab="interactions"]');
+      if (tab) {
+        // Keep the warning color but stop the pulse
+        tab.style.animation = 'none';
+      }
     }
 
     // Add new medication definition
