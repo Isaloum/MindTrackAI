@@ -1389,7 +1389,23 @@
           </div>
           <div class="form-group">
             <label>Dosage</label>
-            <input type="text" id="medDosage" placeholder="e.g., 81 mg" oninput="checkDosageRealtime()">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem">
+              <input type="number" id="medDosage" placeholder="e.g., 81" oninput="checkDosageRealtime()" step="0.01" min="0">
+              <select id="medDosageUnit" style="min-width:90px">
+                <option value="mg">mg</option>
+                <option value="mcg">mcg</option>
+                <option value="g">g</option>
+                <option value="mL">mL</option>
+                <option value="IU">IU</option>
+                <option value="units">units</option>
+                <option value="tablet">tablet(s)</option>
+                <option value="capsule">capsule(s)</option>
+                <option value="drops">drop(s)</option>
+                <option value="spray">spray(s)</option>
+                <option value="patch">patch(es)</option>
+                <option value="puff">puff(s)</option>
+              </select>
+            </div>
             <div id="dosageWarning" style="margin-top:0.5rem;font-size:0.8125rem;"></div>
           </div>
           <div class="form-group">
@@ -2476,15 +2492,15 @@
       
       if (type === 'prescription') {
         nameInput.placeholder = 'e.g., Lisinopril, Metformin, Sertraline';
-        dosageInput.placeholder = 'e.g., 10 mg, 500 mg';
+        dosageInput.placeholder = 'e.g., 10, 500, 25';
         hint.textContent = 'Medications requiring a doctor\'s prescription (e.g., Lisinopril, Metformin)';
       } else if (type === 'otc') {
         nameInput.placeholder = 'e.g., Aspirin, Tylenol, Ibuprofen';
-        dosageInput.placeholder = 'e.g., 81 mg, 325 mg, 200 mg';
+        dosageInput.placeholder = 'e.g., 81, 325, 200';
         hint.textContent = 'Over-the-counter medications available without prescription (e.g., Aspirin, Tylenol)';
       } else {
         nameInput.placeholder = 'e.g., Vitamin D, Fish Oil, Magnesium';
-        dosageInput.placeholder = 'e.g., 1000 IU, 500 mg';
+        dosageInput.placeholder = 'e.g., 1000, 500, 250';
         hint.textContent = 'Vitamins, minerals, herbs, or other dietary supplements';
       }
     }
@@ -4069,9 +4085,45 @@
     // DOSAGE VALIDATION FUNCTIONS
     // ============================================
     
+    // Real-time dosage validation
+    function checkDosageRealtime() {
+      const nameInput = document.getElementById('medName');
+      const dosageInput = document.getElementById('medDosage');
+      const dosageUnitInput = document.getElementById('medDosageUnit');
+      const warningBox = document.getElementById('dosageWarning');
+      
+      if (!nameInput || !dosageInput || !dosageUnitInput || !warningBox) return;
+      
+      const medName = nameInput.value.trim();
+      const dosageNum = dosageInput.value.trim();
+      const dosageUnit = dosageUnitInput.value;
+      
+      if (!medName || !dosageNum) {
+        warningBox.innerHTML = '';
+        return;
+      }
+      
+      const dosage = `${dosageNum} ${dosageUnit}`;
+      const validation = validateDosage(medName, dosage);
+      
+      if (validation.warnings && validation.warnings.length > 0) {
+        const criticalWarnings = validation.warnings.filter(w => w.level === 'critical' || w.level === 'danger');
+        if (criticalWarnings.length > 0) {
+          warningBox.innerHTML = criticalWarnings.map(w => 
+            `<div style="padding:0.75rem;background:#fee;border:2px solid #d63031;border-radius:6px;color:#2d3436;font-weight:600">${w.message}</div>`
+          ).join('');
+        } else {
+          const topWarning = validation.warnings[0];
+          warningBox.innerHTML = `<div style="padding:0.5rem;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;color:#2d3436;font-size:0.8125rem">${topWarning.message}</div>`;
+        }
+      } else {
+        warningBox.innerHTML = '';
+      }
+    }
+    
     function parseDosage(dosageStr) {
       // Extract number and unit from dosage string
-      const match = dosageStr.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|µg|g|iu|ml)?/i);
+      const match = dosageStr.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|µg|g|iu|ml|units?|tablets?|capsules?|drops?|sprays?|patches?|puffs?)?/i);
       if (!match) return null;
       
       let amount = parseFloat(match[1]);
@@ -4379,7 +4431,9 @@
       const nameInput = document.getElementById('medName');
       const name = nameInput.value.trim();
       const rxcui = nameInput.getAttribute('data-rxcui') || null;
-      const dosage = document.getElementById('medDosage').value.trim();
+      const dosageNum = document.getElementById('medDosage').value.trim();
+      const dosageUnit = document.getElementById('medDosageUnit').value;
+      const dosage = dosageNum ? `${dosageNum} ${dosageUnit}` : '';
       const time = document.getElementById('medTime').value;
       
       console.log('Form values:', { type, name, dosage, time });
@@ -4640,10 +4694,12 @@
       nameInput.value = '';
       nameInput.removeAttribute('data-rxcui');
       const dosageInput = document.getElementById('medDosage');
+      const dosageUnitInput = document.getElementById('medDosageUnit');
       const infoBox = document.getElementById('medInfoBox');
       const warningBox = document.getElementById('dosageWarning');
 
       dosageInput.value = '';
+      dosageUnitInput.value = 'mg'; // Reset to default
       dosageInput.classList.remove('valid');
       if (infoBox) infoBox.innerHTML = '';
       if (warningBox) warningBox.innerHTML = '';
