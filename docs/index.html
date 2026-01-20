@@ -5993,6 +5993,36 @@
     const activeTab = localStorage.getItem('stepsync_activeTab') || 'today';
     switchMedicationTab(activeTab);
     
+    // Migrate vitamins/minerals to supplement category
+    (function migrateSupplementTypes() {
+      const definitions = DB.get('medicationDefinitions');
+      const supplementNames = [
+        'potassium', 'calcium', 'magnesium', 'iron', 'zinc', 'vitamin',
+        'multivitamin', 'fish oil', 'omega', 'coq10', 'probiotic',
+        'vitamin d', 'vitamin c', 'vitamin b', 'vitamin e', 'vitamin a',
+        'folic acid', 'folate', 'biotin', 'b12', 'b6', 'd3', 'k2'
+      ];
+      
+      let updated = false;
+      definitions.forEach(med => {
+        const medNameLower = (med.name || '').toLowerCase();
+        const isVitaminOrMineral = supplementNames.some(supp => medNameLower.includes(supp));
+        
+        if (isVitaminOrMineral && med.type !== 'supplement') {
+          console.log(`🔄 Migrating "${med.name}" from ${med.type} to supplement`);
+          med.type = 'supplement';
+          updated = true;
+        }
+      });
+      
+      if (updated) {
+        DB.set('medicationDefinitions', definitions);
+        console.log('✅ Supplement type migration complete');
+        loadMedications();
+        loadSupplements();
+      }
+    })();
+    
     // Migrate RxCUI codes for existing medications, then check interactions
     (async () => {
       await migrateRxCUICodes();
