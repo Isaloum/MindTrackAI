@@ -1605,9 +1605,11 @@
             <label>Dosage</label>
             <div style="display:flex;gap:0.5rem;align-items:flex-start">
               <div style="flex:1">
+                <label style="display:block;font-weight:500;margin-bottom:0.5rem;color:var(--text-secondary);font-size:0.875rem">Amount</label>
                 <input type="text" id="medDosageAmount" placeholder="e.g., 500, 81, 2" oninput="handleDosageAmountInput()" style="width:100%">
               </div>
               <div style="flex:1.2">
+                <label style="display:block;font-weight:500;margin-bottom:0.5rem;color:var(--text-secondary);font-size:0.875rem">Unit</label>
                 <select id="medDosageUnit" onchange="updateDosagePreview()" style="width:100%">
                   <option value="">Select unit...</option>
                   <optgroup label="Weight">

@@ -1,6 +1,6 @@
 // Service Worker for MindTrackAI PWA
 // Version: Increment this on every deploy to force cache updates
-const CACHE_VERSION = 'mindtrack-v24-2026-01-20-form-spacing';
+const CACHE_VERSION = 'mindtrack-v25-2026-01-20-unit-label';
 const CACHE_ASSETS = [
   './',
   // Avoid pinning a potentially stale HTML shell; we always prefer network for HTML.
