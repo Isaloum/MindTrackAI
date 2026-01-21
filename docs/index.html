@@ -1582,7 +1582,7 @@
       
       <div class="card">
         <div class="card-title">💊 Add Medication or Supplement</div>
-        <div class="form-grid">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr 0.8fr;gap:1rem">
           <div class="form-group">
             <label>Type</label>
             <select id="medType" onchange="updateMedTypePlaceholder()">
@@ -1607,7 +1607,7 @@
               <div style="flex:1">
                 <input type="text" id="medDosageAmount" placeholder="e.g., 500, 81, 2" oninput="handleDosageAmountInput()" style="width:100%">
               </div>
-              <div style="flex:1">
+              <div style="flex:1.2">
                 <select id="medDosageUnit" onchange="updateDosagePreview()" style="width:100%">
                   <option value="">Select unit...</option>
                   <optgroup label="Weight">
