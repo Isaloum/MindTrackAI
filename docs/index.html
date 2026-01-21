@@ -6586,7 +6586,8 @@
         'potassium', 'calcium', 'magnesium', 'iron', 'zinc', 'vitamin',
         'multivitamin', 'fish oil', 'omega', 'coq10', 'probiotic',
         'vitamin d', 'vitamin c', 'vitamin b', 'vitamin e', 'vitamin a',
-        'folic acid', 'folate', 'biotin', 'b12', 'b6', 'd3', 'k2'
+        'folic acid', 'folate', 'biotin', 'b12', 'b6', 'd3', 'k2',
+        'mineral', 'supplement'
       ];
       
       let updated = false;
@@ -6594,7 +6595,13 @@
         const medNameLower = (med.name || '').toLowerCase();
         const isVitaminOrMineral = supplementNames.some(supp => medNameLower.includes(supp));
         
-        if (isVitaminOrMineral && med.type !== 'supplement') {
+        // FORCE Potassium to always be a supplement
+        if (medNameLower.includes('potassium') && med.type !== 'supplement') {
+          console.log(`🔄 FORCE migrating "${med.name}" from ${med.type} to supplement`);
+          med.type = 'supplement';
+          updated = true;
+        }
+        else if (isVitaminOrMineral && med.type !== 'supplement') {
           console.log(`🔄 Migrating "${med.name}" from ${med.type} to supplement`);
           med.type = 'supplement';
           updated = true;
