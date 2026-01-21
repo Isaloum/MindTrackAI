@@ -5452,14 +5452,6 @@
       loadMedicationHistory(); // Update history view
       loadSupplements();
       scheduleInteractionRecheck('add-med');
-
-      // Scroll to medication list to show it was added
-      setTimeout(() => {
-        const medList = document.getElementById('medList');
-        if (medList) {
-          medList.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
       }
     }
 
