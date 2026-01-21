@@ -1461,7 +1461,37 @@
           </div>
           <div class="form-group">
             <label>Dosage</label>
-            <input type="text" id="medDosage" placeholder="e.g., 81 mg, 500 mL, 2 tablets" oninput="checkDosageRealtime()">
+            <div style="display:flex;gap:0.5rem;align-items:flex-start">
+              <div style="flex:1">
+                <input type="text" id="medDosageAmount" placeholder="e.g., 500, 81, 2" oninput="handleDosageAmountInput()" style="width:100%">
+              </div>
+              <div style="flex:1">
+                <select id="medDosageUnit" onchange="updateDosagePreview()" style="width:100%">
+                  <option value="">Select unit...</option>
+                  <optgroup label="Weight">
+                    <option value="mg">mg (milligrams)</option>
+                    <option value="g">g (grams)</option>
+                    <option value="mcg">μg (micrograms)</option>
+                  </optgroup>
+                  <optgroup label="Volume">
+                    <option value="mL">mL (milliliters)</option>
+                    <option value="L">L (liters)</option>
+                  </optgroup>
+                  <optgroup label="Count">
+                    <option value="tablet">tablet(s)</option>
+                    <option value="capsule">capsule(s)</option>
+                    <option value="drop">drop(s)</option>
+                    <option value="spray">spray(s)</option>
+                    <option value="patch">patch(es)</option>
+                    <option value="puff">puff(s)</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="IU">IU (International Units)</option>
+                    <option value="unit">unit(s)</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
             <div id="dosageDetected" style="margin-top:0.375rem;font-size:0.75rem;color:var(--primary);font-weight:500"></div>
             <div id="dosageWarning" style="margin-top:0.5rem;font-size:0.8125rem;"></div>
           </div>
@@ -3189,14 +3219,30 @@
       document.getElementById('medName').setAttribute('data-rxcui', rxcui);
       
       // Try to auto-suggest a common dosage based on medication name
-      const dosageInput = document.getElementById('medDosage');
-      if (dosageInput) {
+      const amountInput = document.getElementById('medDosageAmount');
+      const unitSelect = document.getElementById('medDosageUnit');
+      
+      if (amountInput && unitSelect) {
         const suggestedDosage = suggestCommonDosage(name);
         if (suggestedDosage) {
-          dosageInput.value = suggestedDosage;
           console.log('✓ Auto-suggested dosage for', name, ':', suggestedDosage);
-          // Trigger validation after a small delay to ensure input is updated
-          setTimeout(() => checkDosageRealtime(), 100);
+          
+          // Parse the suggested dosage
+          const parsed = parseDosage(suggestedDosage);
+          if (parsed) {
+            amountInput.value = parsed.amount;
+            
+            // Find matching unit in dropdown
+            const unitOption = Array.from(unitSelect.options).find(opt => 
+              opt.value.toLowerCase() === parsed.unit.toLowerCase()
+            );
+            if (unitOption) {
+              unitSelect.value = unitOption.value;
+            }
+            
+            // Update preview
+            setTimeout(() => updateDosagePreview(), 100);
+          }
         }
       }
     }
@@ -4740,6 +4786,80 @@
         tab.style.animation = 'none';
       }
     }
+    
+    // Handle dosage amount input - smart unit suggestion
+    function handleDosageAmountInput() {
+      const amountInput = document.getElementById('medDosageAmount');
+      const unitSelect = document.getElementById('medDosageUnit');
+      const amount = amountInput.value.trim();
+      
+      // If user pastes "500 mg" or types it, parse it
+      const parsed = parseDosage(amount);
+      if (parsed && parsed.unit) {
+        // Extract just the number
+        amountInput.value = parsed.amount;
+        // Set the unit
+        const unitOption = Array.from(unitSelect.options).find(opt => 
+          opt.value.toLowerCase() === parsed.unit.toLowerCase()
+        );
+        if (unitOption) {
+          unitSelect.value = unitOption.value;
+        }
+      }
+      
+      // Auto-suggest common unit based on amount
+      if (amount && !unitSelect.value) {
+        const num = parseFloat(amount);
+        if (!isNaN(num)) {
+          // Suggest mg for common dosages
+          if (num >= 5 && num <= 5000) {
+            unitSelect.value = 'mg';
+          } else if (num >= 1 && num <= 10 && Number.isInteger(num)) {
+            unitSelect.value = 'tablet';
+          }
+        }
+      }
+      
+      updateDosagePreview();
+    }
+    
+    // Update dosage preview
+    function updateDosagePreview() {
+      const amountInput = document.getElementById('medDosageAmount');
+      const unitSelect = document.getElementById('medDosageUnit');
+      const detectedBox = document.getElementById('dosageDetected');
+      const warningBox = document.getElementById('dosageWarning');
+      
+      const amount = amountInput.value.trim();
+      const unit = unitSelect.value;
+      
+      if (!amount || !unit) {
+        if (detectedBox) detectedBox.innerHTML = '';
+        if (warningBox) warningBox.innerHTML = '';
+        return;
+      }
+      
+      // Show preview
+      const dosageStr = `${amount} ${unit}`;
+      if (detectedBox) {
+        detectedBox.innerHTML = `✓ Dosage: <strong>${dosageStr}</strong>`;
+      }
+      
+      // Validate with existing function
+      const nameInput = document.getElementById('medName');
+      const medName = nameInput ? nameInput.value.trim() : '';
+      
+      if (medName) {
+        const validation = validateDosage(medName, dosageStr);
+        if (validation.warnings && validation.warnings.length > 0 && warningBox) {
+          const warning = validation.warnings[0];
+          const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
+          warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
+        } else if (warningBox) {
+          warningBox.innerHTML = '';
+        }
+      }
+    }
 
     // Add new medication definition
     function addMedication() {
@@ -4748,10 +4868,17 @@
       const nameInput = document.getElementById('medName');
       const name = nameInput.value.trim();
       const rxcui = nameInput.getAttribute('data-rxcui') || null;
-      const dosage = document.getElementById('medDosage').value.trim();
+      
+      // Get dosage from amount + unit fields
+      const amountInput = document.getElementById('medDosageAmount');
+      const unitSelect = document.getElementById('medDosageUnit');
+      const amount = amountInput ? amountInput.value.trim() : '';
+      const unit = unitSelect ? unitSelect.value : '';
+      const dosage = (amount && unit) ? `${amount} ${unit}` : '';
+      
       const time = document.getElementById('medTime').value;
       
-      console.log('Form values:', { type, name, dosage, time });
+      console.log('Form values:', { type, name, amount, unit, dosage, time });
       
       if (!name) return alert('Please enter medication/supplement name');
       
@@ -4766,15 +4893,18 @@
         // Clear form
         nameInput.value = '';
         nameInput.removeAttribute('data-rxcui');
-        document.getElementById('medDosage').value = '';
-        document.getElementById('medInfoBox').innerHTML = '';
-        document.getElementById('dosageWarning').innerHTML = '';
+        if (amountInput) amountInput.value = '';
+        if (unitSelect) unitSelect.value = '';
+        const detectedBox = document.getElementById('dosageDetected');
+        const warningBox = document.getElementById('dosageWarning');
+        if (detectedBox) detectedBox.innerHTML = '';
+        if (warningBox) warningBox.innerHTML = '';
         return;
       }
       
       // CRITICAL: Validate dosage FIRST (before anything else)
-      if (!dosage) {
-        return alert('❌ REQUIRED\n\nPlease enter a dosage amount.');
+      if (!dosage || !amount || !unit) {
+        return alert('❌ REQUIRED\n\nPlease enter both a dosage amount and select a unit.');
       }
       
       // Check if dosage contains ANY number at all
@@ -5014,15 +5144,15 @@
       // CRITICAL: Clear ALL form fields and validation messages
       nameInput.value = '';
       nameInput.removeAttribute('data-rxcui');
-      const dosageInput = document.getElementById('medDosage');
+      
+      const amountInput = document.getElementById('medDosageAmount');
+      const unitSelect = document.getElementById('medDosageUnit');
       const detectedBox = document.getElementById('dosageDetected');
-      const infoBox = document.getElementById('medInfoBox');
       const warningBox = document.getElementById('dosageWarning');
 
-      dosageInput.value = '';
-      dosageInput.classList.remove('valid');
+      if (amountInput) amountInput.value = '';
+      if (unitSelect) unitSelect.value = '';
       if (detectedBox) detectedBox.innerHTML = '';
-      if (infoBox) infoBox.innerHTML = '';
       if (warningBox) warningBox.innerHTML = '';
 
       // Reset type dropdown to default

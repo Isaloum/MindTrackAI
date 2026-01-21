@@ -1,6 +1,6 @@
 // Service Worker for MindTrackAI PWA
 // Version: Increment this on every deploy to force cache updates
-const CACHE_VERSION = 'mindtrack-v19-2026-01-20-silent-interaction-check';
+const CACHE_VERSION = 'mindtrack-v20-2026-01-20-smart-dosage-ui';
 const CACHE_ASSETS = [
   './',
   // Avoid pinning a potentially stale HTML shell; we always prefer network for HTML.
