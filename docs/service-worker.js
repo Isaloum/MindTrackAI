@@ -1,6 +1,6 @@
 // Service Worker for MindTrackAI PWA
 // Version: Increment this on every deploy to force cache updates
-const CACHE_VERSION = 'mindtrack-v30-2026-01-20-tab-border-fix';
+const CACHE_VERSION = 'mindtrack-v31-2026-01-21-remove-rescan';
 const CACHE_ASSETS = [
   './',
   // Avoid pinning a potentially stale HTML shell; we always prefer network for HTML.
