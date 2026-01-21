@@ -1950,7 +1950,7 @@
     }
 
     function initTheme() {
-      const savedTheme = DB.getOne('theme') || 'dark';
+      const savedTheme = DB.getOne('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       document.getElementById('themeIcon').textContent = savedTheme === 'light' ? '🌙' : '☀️';
     }
