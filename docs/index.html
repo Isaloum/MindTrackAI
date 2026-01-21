@@ -3174,7 +3174,10 @@
         // Pain/Anti-inflammatory
         'aspirin': '81 mg',
         'ibuprofen': '200 mg',
+        'advil': '200 mg',
+        'motrin': '200 mg',
         'naproxen': '220 mg',
+        'aleve': '220 mg',
         'acetaminophen': '500 mg',
         'tylenol': '500 mg',
         
@@ -3220,6 +3223,8 @@
         // Supplements
         'vitamin d': '1000 IU',
         'vitamin d3': '1000 IU',
+        'd3': '1000 IU',
+        'cholecalciferol': '1000 IU',
         'vitamin c': '500 mg',
         'fish oil': '1000 mg',
         'omega 3': '1000 mg',
@@ -3227,8 +3232,11 @@
         'magnesium': '250 mg',
         'iron': '65 mg',
         'vitamin b12': '1000 mcg',
+        'b12': '1000 mcg',
         'folic acid': '400 mcg',
+        'folate': '400 mcg',
         'multivitamin': '1 tablet',
+        'potassium': '2700 mg',
         
         // Acid reflux
         'omeprazole': '20 mg',
@@ -5061,22 +5069,71 @@
         detectedBox.innerHTML = `✓ Dosage: <strong>${dosageStr}</strong>`;
       }
       
-      // Check medication-specific validation ONLY (skip generic validation to avoid conflicts)
+      // CRITICAL: Validate unit makes sense for this medication
       const nameInput = document.getElementById('medName');
-      const medName = nameInput ? nameInput.value.trim() : '';
+      const medName = nameInput ? nameInput.value.trim().toLowerCase() : '';
       
-      if (medName) {
+      if (medName && warningBox) {
+        // Check for nonsensical unit usage
+        const wrongUnitWarning = detectWrongUnit(medName, amount, unit);
+        if (wrongUnitWarning) {
+          warningBox.innerHTML = `<div style="color:#dc2626;font-size:0.8125rem;font-weight:600">${wrongUnitWarning}</div>`;
+          return;
+        }
+        
+        // Check medication-specific dosage validation
         const validation = validateDosage(medName, dosageStr);
-        if (validation.warnings && validation.warnings.length > 0 && warningBox) {
+        if (validation.warnings && validation.warnings.length > 0) {
           const warning = validation.warnings[0];
           const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
           warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
-        } else if (warningBox) {
+        } else {
           warningBox.innerHTML = '';
         }
       } else if (warningBox) {
         warningBox.innerHTML = '';
       }
+    }
+    
+    // Detect wrong units (e.g., "200 tablets" of Advil should be "200 mg")
+    function detectWrongUnit(medName, amount, unit) {
+      const num = parseFloat(amount);
+      if (isNaN(num)) return null;
+      
+      const name = medName.toLowerCase();
+      
+      // Pain relievers should NEVER be in tablets when dose is >10
+      if ((name.includes('advil') || name.includes('ibuprofen') || name.includes('motrin')) && 
+          (unit.toLowerCase().includes('tablet') || unit.toLowerCase().includes('pill') || unit.toLowerCase().includes('capsule'))) {
+        if (num >= 100) {
+          return `⛔ WRONG UNIT: ${num} tablets of Advil/Ibuprofen is dangerous! Did you mean ${num} mg?`;
+        }
+      }
+      
+      if ((name.includes('tylenol') || name.includes('acetaminophen')) && 
+          (unit.toLowerCase().includes('tablet') || unit.toLowerCase().includes('pill') || unit.toLowerCase().includes('capsule'))) {
+        if (num >= 100) {
+          return `⛔ WRONG UNIT: ${num} tablets of Tylenol is dangerous! Did you mean ${num} mg?`;
+        }
+      }
+      
+      // Vitamin D should ALWAYS be IU, not tablets
+      if ((name.includes('vitamin d') || name.includes('d3') || name.includes('cholecalciferol')) && 
+          (unit.toLowerCase().includes('tablet') || unit.toLowerCase().includes('pill') || unit.toLowerCase().includes('capsule'))) {
+        if (num >= 100) {
+          return `⛔ WRONG UNIT: Vitamin D should be measured in IU, not tablets. Did you mean ${num} IU?`;
+        }
+      }
+      
+      // Potassium in tablets doesn't make sense for high doses
+      if (name.includes('potassium') && 
+          (unit.toLowerCase().includes('tablet') || unit.toLowerCase().includes('pill') || unit.toLowerCase().includes('capsule'))) {
+        if (num >= 100) {
+          return `⛔ WRONG UNIT: ${num} tablets of Potassium is wrong! Did you mean ${num} mg?`;
+        }
+      }
+      
+      return null;
     }
 
     // Add new medication definition
