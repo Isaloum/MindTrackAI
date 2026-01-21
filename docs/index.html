@@ -3395,7 +3395,7 @@
         interactionRecheckTimer = setTimeout(() => {
           interactionRecheckTimer = null;
           console.log(`🔁 Auto interaction refresh${reason ? ` (${reason})` : ''}`);
-          checkInteractions();
+          checkInteractions(true); // Run in SILENT mode
         }, delayMs);
       }
 
@@ -3977,8 +3977,8 @@
         }
       }
 
-      async function checkInteractions() {
-        console.log('🔵 checkInteractions() called');
+      async function checkInteractions(silent = false) {
+        console.log(`🔵 checkInteractions() called${silent ? ' (silent mode)' : ''}`);
         try {
           const checkId = ++lastInteractionCheckId;
           const definitions = DB.get('medicationDefinitions');
@@ -3991,7 +3991,10 @@
           }
 
           if (!definitions || definitions.length < 2) {
-            container.innerHTML = `<div class="insight">Add at least <strong>two</strong> medications/supplements to check for interactions.</div>`;
+            if (!silent) {
+              container.innerHTML = `<div class="insight">Add at least <strong>two</strong> medications/supplements to check for interactions.</div>`;
+            }
+            updateInteractionBadge(0);
             return;
           }
 
@@ -4030,8 +4033,10 @@
             </div>
           `;
           
-          // Show loading state
-          container.innerHTML = `${scanSummaryHtml}<div class="insight" style="color:var(--text-secondary)">⏳ Checking for dangerous interactions…</div>`;
+          // Show loading state only if not silent
+          if (!silent) {
+            container.innerHTML = `${scanSummaryHtml}<div class="insight" style="color:var(--text-secondary)">⏳ Checking for dangerous interactions…</div>`;
+          }
           
           // Check for interactions
           console.log('📡 Calling checkDrugInteractions...');
@@ -4113,13 +4118,21 @@
           mergedPairs.sort((x, y) => severityRank(y.severity) - severityRank(x.severity));
           
           if (!mergedPairs || mergedPairs.length === 0) {
-            container.innerHTML = `${scanSummaryHtml}<div class="insight positive">✅ No dangerous interactions found for your current medications. Always confirm with your healthcare provider.</div>`;
+            if (!silent) {
+              container.innerHTML = `${scanSummaryHtml}<div class="insight positive">✅ No dangerous interactions found for your current medications. Always confirm with your healthcare provider.</div>`;
+            }
             updateInteractionBadge(0); // No warnings
             return;
           }
           
-          // Update badge with warning count
+          // Update badge with warning count (always, even in silent mode)
           updateInteractionBadge(mergedPairs.length);
+          
+          // Only update the container HTML if not in silent mode
+          if (silent) {
+            console.log(`⚠️ Silent mode: Found ${mergedPairs.length} interaction(s), badge updated`);
+            return;
+          }
           
           // Map severity to colors and icons
           const getSeverityStyle = (severity) => {
