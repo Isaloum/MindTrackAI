@@ -4383,11 +4383,13 @@
               const sourceLine = `${metaBits.length ? `${metaBits.join(' • ')}` : ''}${dailyMedLink ? `${metaBits.length ? ' • ' : ''}<a href="${dailyMedLink}" target="_blank" rel="noopener">View FDA label (DailyMed)</a>` : ''}`;
 
               return `
-                <div style="margin-top:0.5rem">
-                  <div style="font-size:0.75rem;color:#64748b">
+                <div style="margin-top:0.75rem;padding:0.75rem;background:rgba(255,255,255,0.6);border-radius:4px;border-left:3px solid #3b82f6">
+                  ${sourceLine ? `
+                  <div style="font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">
                     ${sourceLine}
                   </div>
-                  <div style="margin-top:0.25rem;color:#1e293b;font-size:0.875rem;line-height:1.6">
+                  ` : ''}
+                  <div style="color:#0f172a;font-size:0.9375rem;line-height:1.6;font-weight:500">
                     ${e.description}
                   </div>
                 </div>
@@ -4415,13 +4417,13 @@
                   `;
                 }
                 return `
-                  <details style="margin-top:0.75rem">
+                  <details style="margin-top:0.75rem" open>
                     <summary style="cursor:pointer;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;color:#0f172a">
                       <div style="font-size:0.875rem;font-weight:600">${groupName}</div>
                       <div style="font-size:0.75rem;color:#64748b">(${count} citation${count === 1 ? '' : 's'})</div>
                       <div style="font-size:0.75rem;color:#94a3b8">▼</div>
                     </summary>
-                    <div style="margin-top:0.5rem">${inner}</div>
+                    ${inner}
                   </details>
                 `;
               }
@@ -4431,27 +4433,30 @@
                 <div style="margin-top:0.75rem">
                   <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
                     <div style="font-size:0.875rem;font-weight:600;color:#0f172a">${groupName}</div>
-
+                    ${count > 1 ? `<div style="font-size:0.75rem;color:#64748b">(${count} warning${count === 1 ? '' : 's'})</div>` : ''}
                   </div>
-                  <div style="margin-top:0.5rem">${inner}</div>
+                  ${inner}
                 </div>
               `;
             }).join('');
 
             return `
-              <div style="background:${style.bg};border-left:6px solid ${style.color};border-radius:var(--radius);padding:1rem;margin-bottom:1rem;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
-                <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:0.75rem">
-                  <div style="flex-shrink:0;font-size:2rem;line-height:1">${style.icon}</div>
+              <div style="background:${style.bg};border-left:6px solid ${style.color};border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,0.12)">
+                <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1rem">
+                  <div style="flex-shrink:0;font-size:2.5rem;line-height:1">${style.icon}</div>
                   <div style="flex:1">
-                    <div style="display:inline-block;background:${style.color};color:#fff;padding:0.25rem 0.625rem;border-radius:4px;font-size:0.6875rem;font-weight:700;letter-spacing:0.5px;margin-bottom:0.5rem">
-                      ${style.label}
+                    <div style="display:inline-block;background:${style.color};color:#fff;padding:0.375rem 0.75rem;border-radius:4px;font-size:0.75rem;font-weight:700;letter-spacing:0.5px;margin-bottom:0.75rem">
+                      ${style.label} INTERACTION
                     </div>
-                    <div style="font-weight:700;color:#0f172a;font-size:1rem;line-height:1.4">
-                      ${p.drug1Name} + ${p.drug2Name}
+                    <div style="font-weight:700;color:#0f172a;font-size:1.25rem;line-height:1.4;margin-bottom:0.5rem">
+                      ${p.drug1Name} <span style="color:${style.color};font-size:1.5rem;margin:0 0.5rem">+</span> ${p.drug2Name}
+                    </div>
+                    <div style="font-size:0.875rem;color:#64748b;font-weight:500">
+                      These medications may interact with each other
                     </div>
                   </div>
                 </div>
-                <div style="margin-left:3rem">
+                <div style="padding-left:0.5rem;border-top:1px solid rgba(0,0,0,0.1);padding-top:1rem">
                   ${evidenceHtml}
                 </div>
               </div>
@@ -4916,9 +4921,12 @@
         selectedContent.classList.add('active');
       }
       
-      // If user opens interactions tab, mark as viewed
+      // If user opens interactions tab, check for interactions and mark as viewed
       if (tabName === 'interactions') {
         markInteractionsAsViewed();
+        // CRITICAL: Check interactions when tab is opened
+        console.log('🔄 Interactions tab opened, checking for drug interactions...');
+        setTimeout(() => checkInteractions(false), 100); // Small delay to ensure tab is visible
       }
       
       // Save active tab preference
@@ -5068,31 +5076,21 @@
         return;
       }
       
-      // Validate dosage range FIRST
-      const rangeValidation = validateDosageRange(amount, unit);
-      
       // Show preview
       const dosageStr = `${amount} ${unit}`;
       if (detectedBox) {
         detectedBox.innerHTML = `✓ Dosage: <strong>${dosageStr}</strong>`;
       }
       
-      // Show range validation warnings
-      if (!rangeValidation.valid || rangeValidation.level === 'warning') {
-        if (warningBox) {
-          const color = rangeValidation.level === 'critical' ? '#dc2626' : '#ea580c';
-          warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem;font-weight:600">${rangeValidation.message}</div>`;
-        }
-      } else {
-        // Check medication-specific validation
-        const nameInput = document.getElementById('medName');
-        const medName = nameInput ? nameInput.value.trim() : '';
-        
-        if (medName) {
-          const validation = validateDosage(medName, dosageStr);
-          if (validation.warnings && validation.warnings.length > 0 && warningBox) {
-            const warning = validation.warnings[0];
-            const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
+      // Check medication-specific validation ONLY (skip generic validation to avoid conflicts)
+      const nameInput = document.getElementById('medName');
+      const medName = nameInput ? nameInput.value.trim() : '';
+      
+      if (medName) {
+        const validation = validateDosage(medName, dosageStr);
+        if (validation.warnings && validation.warnings.length > 0 && warningBox) {
+          const warning = validation.warnings[0];
+          const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
             warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
           } else if (warningBox) {
             warningBox.innerHTML = '';
@@ -6597,6 +6595,35 @@
     updateProfile();
     moodEmoji.textContent = moodEmojis[4];
     showOnboarding();
+    
+    // Medication tab switcher
+    window.switchMedicationTab = function(tabName) {
+      const tabs = document.querySelectorAll('.med-tab');
+      const contents = document.querySelectorAll('.med-tab-content');
+      
+      tabs.forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.tab === tabName) {
+          tab.classList.add('active');
+        }
+      });
+      
+      contents.forEach(content => {
+        content.classList.remove('active');
+        if (content.id === 'tab-' + tabName) {
+          content.classList.add('active');
+        }
+      });
+      
+      // Save preference
+      localStorage.setItem('stepsync_activeTab', tabName);
+      
+      // CRITICAL: Check interactions when switching to the interactions tab
+      if (tabName === 'interactions') {
+        console.log('🔄 Interactions tab opened, checking for drug interactions...');
+        checkInteractions(false); // FALSE = not silent, show UI
+      }
+    };
     
     // Restore last active tab
     const savedTab = localStorage.getItem('mindtrack_activeTab');
