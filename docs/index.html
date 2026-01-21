@@ -5091,13 +5091,12 @@
         if (validation.warnings && validation.warnings.length > 0 && warningBox) {
           const warning = validation.warnings[0];
           const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
-            warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
-          } else if (warningBox) {
-            warningBox.innerHTML = '';
-          }
+          warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
         } else if (warningBox) {
           warningBox.innerHTML = '';
         }
+      } else if (warningBox) {
+        warningBox.innerHTML = '';
       }
     }
 
