@@ -2376,7 +2376,6 @@
       const nextSection = document.getElementById(tabName);
       if (nextSection) {
         nextSection.classList.add('active');
-        nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
         console.warn('Unknown tab section:', tabName);
       }
