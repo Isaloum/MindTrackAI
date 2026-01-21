@@ -4402,30 +4402,9 @@
               const count = (items || []).length;
               const inner = (items || []).map(renderEvidenceItem).join('');
 
-              // Make FDA evidence collapsible so it doesn't look like multiple duplicate warnings.
+              // Skip FDA evidence completely
               if (groupName.toLowerCase().includes('fda')) {
-                if (hideFdaEvidenceDetails) {
-                  return `
-                    <div style="margin-top:0.75rem">
-                      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-                        <div style="font-size:0.875rem;font-weight:600;color:#0f172a">FDA Labeling (Saved)</div>
-                      </div>
-                      <div style="margin-top:0.5rem;color:#334155;font-size:0.875rem;line-height:1.6">
-                        FDA scan previously flagged this pair. Enable <strong>FDA Label Scan</strong> to view details.
-                      </div>
-                    </div>
-                  `;
-                }
-                return `
-                  <details style="margin-top:0.75rem" open>
-                    <summary style="cursor:pointer;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;color:#0f172a">
-                      <div style="font-size:0.875rem;font-weight:600">${groupName}</div>
-                      <div style="font-size:0.75rem;color:#64748b">(${count} citation${count === 1 ? '' : 's'})</div>
-                      <div style="font-size:0.75rem;color:#94a3b8">▼</div>
-                    </summary>
-                    ${inner}
-                  </details>
-                `;
+                return '';
               }
 
               // Local (and other) evidence stays expanded.
