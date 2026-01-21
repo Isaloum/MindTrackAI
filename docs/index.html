@@ -4986,6 +4986,62 @@
       updateDosagePreview();
     }
     
+    // Validate dosage range (prevent dangerous amounts)
+    function validateDosageRange(amount, unit) {
+      const num = parseFloat(amount);
+      if (isNaN(num) || num <= 0) {
+        return { valid: false, level: 'critical', message: '⛔ Invalid dosage amount' };
+      }
+      
+      // Maximum safe limits per unit type
+      const limits = {
+        'tablet': { max: 10, typical: 4 },
+        'capsule': { max: 10, typical: 4 },
+        'pill': { max: 10, typical: 4 },
+        'mg': { max: 10000, typical: 2000 },
+        'g': { max: 10, typical: 3 },
+        'mcg': { max: 10000, typical: 1000 },
+        'ml': { max: 500, typical: 100 },
+        'mL': { max: 500, typical: 100 },
+        'drop': { max: 50, typical: 20 },
+        'spray': { max: 20, typical: 10 },
+        'patch': { max: 3, typical: 1 },
+        'inhale': { max: 10, typical: 4 },
+        'puff': { max: 20, typical: 8 },
+        'IU': { max: 100000, typical: 10000 },
+        'unit': { max: 100, typical: 50 }
+      };
+      
+      const limit = limits[unit];
+      if (!limit) {
+        // Unknown unit - allow but warn if very large
+        if (num > 1000) {
+          return { valid: false, level: 'critical', message: `⛔ ${num} ${unit} seems dangerously high` };
+        }
+        return { valid: true };
+      }
+      
+      // Check against maximum
+      if (num > limit.max) {
+        return { 
+          valid: false, 
+          level: 'critical', 
+          message: `⛔ ${num} ${unit} exceeds safe maximum (${limit.max} ${unit}). Please verify.` 
+        };
+      }
+      
+      // Warn if above typical but below max
+      if (num > limit.typical) {
+        return { 
+          valid: true, 
+          level: 'warning', 
+          message: `⚠️ ${num} ${unit} is higher than typical (usually ≤${limit.typical} ${unit}). Double-check dosage.` 
+        };
+      }
+      
+      return { valid: true };
+    }
+    
     // Update dosage preview
     function updateDosagePreview() {
       const amountInput = document.getElementById('medDosageAmount');
@@ -5002,22 +5058,35 @@
         return;
       }
       
+      // Validate dosage range FIRST
+      const rangeValidation = validateDosageRange(amount, unit);
+      
       // Show preview
       const dosageStr = `${amount} ${unit}`;
       if (detectedBox) {
         detectedBox.innerHTML = `✓ Dosage: <strong>${dosageStr}</strong>`;
       }
       
-      // Validate with existing function
-      const nameInput = document.getElementById('medName');
-      const medName = nameInput ? nameInput.value.trim() : '';
-      
-      if (medName) {
-        const validation = validateDosage(medName, dosageStr);
-        if (validation.warnings && validation.warnings.length > 0 && warningBox) {
-          const warning = validation.warnings[0];
-          const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
-          warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
+      // Show range validation warnings
+      if (!rangeValidation.valid || rangeValidation.level === 'warning') {
+        if (warningBox) {
+          const color = rangeValidation.level === 'critical' ? '#dc2626' : '#ea580c';
+          warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem;font-weight:600">${rangeValidation.message}</div>`;
+        }
+      } else {
+        // Check medication-specific validation
+        const nameInput = document.getElementById('medName');
+        const medName = nameInput ? nameInput.value.trim() : '';
+        
+        if (medName) {
+          const validation = validateDosage(medName, dosageStr);
+          if (validation.warnings && validation.warnings.length > 0 && warningBox) {
+            const warning = validation.warnings[0];
+            const color = warning.level === 'critical' ? '#dc2626' : '#ea580c';
+            warningBox.innerHTML = `<div style="color:${color};font-size:0.8125rem">${warning.message}</div>`;
+          } else if (warningBox) {
+            warningBox.innerHTML = '';
+          }
         } else if (warningBox) {
           warningBox.innerHTML = '';
         }
@@ -5044,6 +5113,14 @@
       console.log('Form values:', { type, name, amount, unit, dosage, time });
       
       if (!name) return alert('Please enter medication/supplement name');
+      
+      // CRITICAL: Validate dosage range to prevent dangerous amounts
+      if (amount && unit) {
+        const rangeValidation = validateDosageRange(amount, unit);
+        if (!rangeValidation.valid) {
+          return alert(rangeValidation.message + '\n\nPlease verify the dosage with your healthcare provider.');
+        }
+      }
       
       // CRITICAL: Check for duplicate FIRST (before any validation)
       const definitions = DB.get('medicationDefinitions');
