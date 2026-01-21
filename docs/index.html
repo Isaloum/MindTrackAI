@@ -503,14 +503,35 @@
     }
     .med-tab-content{
       display:none;
+      opacity:0;
+      transition:opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .med-tab-content.active{
       display:block;
-      animation:fadeInSlide 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      animation:fadeInSmooth 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
-    @keyframes fadeInSlide{
-      from{opacity:0;transform:translateY(10px)}
-      to{opacity:1;transform:translateY(0)}
+    .med-tab-content.fade-out{
+      animation:fadeOutSmooth 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes fadeInSmooth{
+      from{
+        opacity:0;
+        transform:translateY(8px) scale(0.98);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+      }
+    }
+    @keyframes fadeOutSmooth{
+      from{
+        opacity:1;
+        transform:translateY(0) scale(1);
+      }
+      to{
+        opacity:0;
+        transform:translateY(-8px) scale(0.98);
+      }
     }
     .med-card{
       background:var(--card);
@@ -4730,18 +4751,39 @@
       }
     }
 
-    // Switch between medication tabs
+    // Switch between medication tabs with smooth crossfade
     function switchMedicationTab(tabName) {
-      // Remove active class from all tabs and content
-      document.querySelectorAll('.med-tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.med-tab-content').forEach(content => content.classList.remove('active'));
-      
-      // Add active class to selected tab and content
+      const allTabs = document.querySelectorAll('.med-tab');
+      const allContent = document.querySelectorAll('.med-tab-content');
       const selectedTab = document.querySelector(`.med-tab[data-tab="${tabName}"]`);
       const selectedContent = document.getElementById(`tab-${tabName}`);
       
-      if (selectedTab) selectedTab.classList.add('active');
-      if (selectedContent) selectedContent.classList.add('active');
+      if (!selectedTab || !selectedContent) return;
+      
+      // Fade out current active content
+      const currentActive = document.querySelector('.med-tab-content.active');
+      if (currentActive && currentActive !== selectedContent) {
+        currentActive.classList.add('fade-out');
+        
+        // Wait for fade out, then switch
+        setTimeout(() => {
+          // Remove active from all
+          allTabs.forEach(tab => tab.classList.remove('active'));
+          allContent.forEach(content => {
+            content.classList.remove('active', 'fade-out');
+          });
+          
+          // Add active to selected
+          selectedTab.classList.add('active');
+          selectedContent.classList.add('active');
+        }, 200);
+      } else {
+        // First load - no animation needed
+        allTabs.forEach(tab => tab.classList.remove('active'));
+        allContent.forEach(content => content.classList.remove('active'));
+        selectedTab.classList.add('active');
+        selectedContent.classList.add('active');
+      }
       
       // If user opens interactions tab, mark as viewed
       if (tabName === 'interactions') {
