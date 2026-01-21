@@ -1,6 +1,6 @@
 // Service Worker for MindTrackAI PWA
 // Version: Increment this on every deploy to force cache updates
-const CACHE_VERSION = 'mindtrack-v21-2026-01-20-smooth-tabs';
+const CACHE_VERSION = 'mindtrack-v22-2026-01-20-calendar-view';
 const CACHE_ASSETS = [
   './',
   // Avoid pinning a potentially stale HTML shell; we always prefer network for HTML.

@@ -542,6 +542,127 @@
       transition:var(--transition);
       box-shadow:0 1px 3px var(--shadow);
     }
+    .calendar-container{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:1rem;
+    }
+    .calendar-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:1rem;
+    }
+    .calendar-month{
+      font-weight:600;
+      font-size:1.125rem;
+      color:var(--text);
+    }
+    .calendar-nav{
+      display:flex;
+      gap:0.5rem;
+    }
+    .calendar-nav button{
+      background:var(--bg-subtle);
+      border:none;
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:var(--transition);
+      color:var(--text);
+    }
+    .calendar-nav button:hover{
+      background:var(--primary);
+      color:white;
+    }
+    .calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7, 1fr);
+      gap:0.25rem;
+    }
+    .calendar-day-name{
+      text-align:center;
+      font-size:0.75rem;
+      font-weight:600;
+      color:var(--text-muted);
+      padding:0.5rem 0;
+    }
+    .calendar-day{
+      aspect-ratio:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:8px;
+      font-size:0.875rem;
+      cursor:pointer;
+      transition:var(--transition);
+      position:relative;
+      font-weight:500;
+    }
+    .calendar-day.empty{
+      cursor:default;
+    }
+    .calendar-day.today{
+      border:2px solid var(--primary);
+    }
+    .calendar-day.adherence-100{
+      background:#d1fae5;
+      color:#065f46;
+    }
+    .calendar-day.adherence-100:hover{
+      background:#a7f3d0;
+    }
+    .calendar-day.adherence-partial{
+      background:#fef3c7;
+      color:#92400e;
+    }
+    .calendar-day.adherence-partial:hover{
+      background:#fde68a;
+    }
+    .calendar-day.adherence-missed{
+      background:#fee2e2;
+      color:#991b1b;
+    }
+    .calendar-day.adherence-missed:hover{
+      background:#fecaca;
+    }
+    .calendar-day.no-meds{
+      background:var(--bg-subtle);
+      color:var(--text-muted);
+    }
+    .calendar-day.future{
+      background:transparent;
+      color:var(--text-muted);
+      cursor:default;
+    }
+    .calendar-day-detail{
+      margin-top:1rem;
+      padding:1rem;
+      background:var(--bg-subtle);
+      border-radius:var(--radius);
+      border-left:3px solid var(--primary);
+    }
+    .calendar-legend{
+      display:flex;
+      gap:1rem;
+      margin-top:1rem;
+      flex-wrap:wrap;
+      font-size:0.75rem;
+    }
+    .calendar-legend-item{
+      display:flex;
+      align-items:center;
+      gap:0.375rem;
+    }
+    .calendar-legend-box{
+      width:16px;
+      height:16px;
+      border-radius:4px;
+    }
     .med-card:hover{
       border-color:var(--primary);
       box-shadow:0 4px 12px var(--shadow-md);
@@ -5288,64 +5409,150 @@
       updateDashboard();
     }
     
-    // Load medication history for past 7 days
+    // Calendar state
+    let currentCalendarMonth = new Date();
+    let selectedCalendarDay = null;
+    
+    // Load medication history as calendar
     function loadMedicationHistory() {
-      const logs = DB.get('medicationLogs');
-      const definitions = DB.get('medicationDefinitions');
       const container = document.getElementById('medicationHistory');
-      
       if (!container) return;
       
-      // Get last 7 days
-      const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        days.push(date.toDateString());
+      renderMedicationCalendar();
+    }
+    
+    function renderMedicationCalendar() {
+      const container = document.getElementById('medicationHistory');
+      if (!container) return;
+      
+      const logs = DB.get('medicationLogs');
+      const year = currentCalendarMonth.getFullYear();
+      const month = currentCalendarMonth.getMonth();
+      
+      // Get first day of month and total days
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
+      
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      let html = '<div class="calendar-container">';
+      
+      // Header with navigation
+      html += '<div class="calendar-header">';
+      html += `<div class="calendar-month">${monthNames[month]} ${year}</div>`;
+      html += '<div class="calendar-nav">';
+      html += '<button onclick="navigateCalendar(-1)" aria-label="Previous month">◀</button>';
+      html += '<button onclick="navigateCalendar(1)" aria-label="Next month">▶</button>';
+      html += '</div></div>';
+      
+      // Day names
+      html += '<div class="calendar-grid">';
+      ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
+        html += `<div class="calendar-day-name">${day}</div>`;
+      });
+      
+      // Empty cells for days before month starts
+      for (let i = 0; i < startDayOfWeek; i++) {
+        html += '<div class="calendar-day empty"></div>';
       }
       
-      let html = '<div style="display:flex;flex-direction:column;gap:1rem">';
-      
-      days.forEach(dayString => {
-        const dayLogs = logs.filter(log => new Date(log.scheduledFor).toDateString() === dayString);
-        const dayDate = new Date(dayString);
-        const isToday = dayString === new Date().toDateString();
-        const dateLabel = isToday ? 'Today' : dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      // Days of the month
+      const today = new Date();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dateString = date.toDateString();
+        const dayLogs = logs.filter(log => new Date(log.scheduledFor).toDateString() === dateString);
         
         const totalDoses = dayLogs.length;
         const takenDoses = dayLogs.filter(log => log.status === 'taken').length;
-        const missedDoses = dayLogs.filter(log => log.status === 'missed').length;
         const adherence = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : 0;
         
-        const adherenceColor = adherence >= 80 ? '#00b894' : adherence >= 50 ? '#fdcb6e' : '#d63031';
+        let dayClass = 'calendar-day';
         
-        html += `
-          <div style="padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
-              <div>
-                <div style="font-weight:600;font-size:0.95rem">${dateLabel}</div>
-                <div style="font-size:0.8rem;color:var(--text-muted)">${totalDoses} doses scheduled</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-size:1.5rem;font-weight:700;color:${adherenceColor}">${adherence}%</div>
-                <div style="font-size:0.75rem;color:var(--text-muted)">adherence</div>
-              </div>
-            </div>
-            ${dayLogs.length > 0 ? `
-              <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-                ${dayLogs.map(log => {
-                  const icon = log.status === 'taken' ? '✅' : log.status === 'missed' ? '❌' : '⏰';
-                  const color = log.status === 'taken' ? '#00b894' : log.status === 'missed' ? '#d63031' : '#95a5a6';
-                  return `<span style="font-size:0.85rem;padding:0.25rem 0.5rem;background:${color}22;color:${color};border-radius:4px">${icon} ${log.medName}</span>`;
-                }).join('')}
-              </div>
-            ` : '<div style="font-size:0.85rem;color:var(--text-muted)">No medications scheduled</div>'}
-          </div>
-        `;
-      });
+        // Check if today
+        if (dateString === today.toDateString()) {
+          dayClass += ' today';
+        }
+        
+        // Check if future
+        if (date > today) {
+          dayClass += ' future';
+        } else if (totalDoses === 0) {
+          dayClass += ' no-meds';
+        } else if (adherence === 100) {
+          dayClass += ' adherence-100';
+        } else if (adherence >= 50) {
+          dayClass += ' adherence-partial';
+        } else {
+          dayClass += ' adherence-missed';
+        }
+        
+        html += `<div class="${dayClass}" onclick="showDayDetail('${dateString}')">${day}</div>`;
+      }
       
+      html += '</div>'; // Close grid
+      
+      // Legend
+      html += '<div class="calendar-legend">';
+      html += '<div class="calendar-legend-item"><div class="calendar-legend-box" style="background:#d1fae5"></div> 100% taken</div>';
+      html += '<div class="calendar-legend-item"><div class="calendar-legend-box" style="background:#fef3c7"></div> Partial</div>';
+      html += '<div class="calendar-legend-item"><div class="calendar-legend-box" style="background:#fee2e2"></div> Missed</div>';
+      html += '<div class="calendar-legend-item"><div class="calendar-legend-box" style="background:var(--bg-subtle)"></div> No meds</div>';
       html += '</div>';
+      
+      // Day detail area
+      html += '<div id="calendarDayDetail"></div>';
+      
+      html += '</div>'; // Close container
+      
       container.innerHTML = html;
+    }
+    
+    function navigateCalendar(direction) {
+      currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + direction);
+      renderMedicationCalendar();
+    }
+    
+    function showDayDetail(dateString) {
+      const logs = DB.get('medicationLogs');
+      const dayLogs = logs.filter(log => new Date(log.scheduledFor).toDateString() === dateString);
+      const detailContainer = document.getElementById('calendarDayDetail');
+      
+      if (!detailContainer || dayLogs.length === 0) {
+        if (detailContainer) detailContainer.innerHTML = '';
+        return;
+      }
+      
+      const date = new Date(dateString);
+      const dateLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      
+      const totalDoses = dayLogs.length;
+      const takenDoses = dayLogs.filter(log => log.status === 'taken').length;
+      const missedDoses = dayLogs.filter(log => log.status === 'missed').length;
+      const adherence = Math.round((takenDoses / totalDoses) * 100);
+      const adherenceColor = adherence >= 80 ? '#00b894' : adherence >= 50 ? '#fdcb6e' : '#d63031';
+      
+      let html = '<div class="calendar-day-detail">';
+      html += `<div style="font-weight:600;font-size:1rem;margin-bottom:0.5rem">${dateLabel}</div>`;
+      html += `<div style="display:flex;gap:1rem;margin-bottom:0.75rem;font-size:0.875rem">`;
+      html += `<div><span style="color:${adherenceColor};font-weight:700;font-size:1.25rem">${adherence}%</span> adherence</div>`;
+      html += `<div>• ${totalDoses} doses</div>`;
+      html += `<div>• ✅ ${takenDoses} taken</div>`;
+      html += `<div>• ❌ ${missedDoses} missed</div>`;
+      html += '</div>';
+      
+      html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap">';
+      dayLogs.forEach(log => {
+        const icon = log.status === 'taken' ? '✅' : log.status === 'missed' ? '❌' : '⏰';
+        const color = log.status === 'taken' ? '#00b894' : log.status === 'missed' ? '#d63031' : '#95a5a6';
+        html += `<span style="font-size:0.8125rem;padding:0.25rem 0.5rem;background:${color}22;color:${color};border-radius:4px">${icon} ${log.medName}</span>`;
+      });
+      html += '</div></div>';
+      
+      detailContainer.innerHTML = html;
     }
 
     // Load and display supplements
