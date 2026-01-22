@@ -1824,6 +1824,9 @@
           <button class="med-tab" onclick="switchMedicationTab('history')" data-tab="history">
             📊 History
           </button>
+          <button class="med-tab" onclick="switchMedicationTab('side-effects')" data-tab="side-effects">
+            ⚕️ Side Effects
+          </button>
           <button class="med-tab" onclick="switchMedicationTab('interactions')" data-tab="interactions">
             ⚠️ Interactions<span class="interaction-badge" id="interactionBadge" style="display:none"></span>
           </button>
@@ -1840,6 +1843,14 @@
 
         <div class="med-tab-content" id="tab-history">
           <div id="medicationHistory"></div>
+        </div>
+        
+        <div class="med-tab-content" id="tab-side-effects">
+          <div style="margin-bottom:1rem;padding:0.875rem;background:var(--bg-subtle);border-radius:var(--radius);border-left:3px solid var(--primary)">
+            <div style="font-weight:600;margin-bottom:0.375rem">📝 Side Effects Journal</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary)">Track medication side effects to discuss with your healthcare provider.</div>
+          </div>
+          <div id="sideEffectsList"></div>
         </div>
 
         <div class="med-tab-content" id="tab-interactions">
@@ -2425,6 +2436,44 @@
   <h2>✅ Drug Interactions</h2>
   <p style="color:#10b981;font-weight:600">No known interactions detected between current medications.</p>`;
       }
+      
+      // Add side effects section
+      const sideEffects = DB.get('sideEffects') || [];
+      if (sideEffects.length > 0) {
+        html += `
+  <h2>⚕️ Reported Side Effects</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Medication</th>
+        <th>Side Effect</th>
+        <th>Severity</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>`;
+        
+        // Show most recent 20 side effects
+        sideEffects.slice(0, 20).forEach(se => {
+          const date = new Date(se.date).toLocaleDateString();
+          const severityLabel = se.severity >= 7 ? 'Severe' : se.severity >= 4 ? 'Moderate' : 'Mild';
+          const severityClass = se.severity >= 7 ? 'severity-high' : se.severity >= 4 ? 'severity-medium' : 'severity-low';
+          
+          html += `
+      <tr>
+        <td>${date}</td>
+        <td><strong>${se.medName}</strong></td>
+        <td>${se.type}</td>
+        <td><span class="${severityClass}">${se.severity}/10 ${severityLabel}</span></td>
+        <td style="font-size:0.875rem">${se.notes || 'N/A'}</td>
+      </tr>`;
+        });
+        
+        html += `
+    </tbody>
+  </table>`;
+      }
 
       // Add notes section
       html += `
@@ -2809,6 +2858,154 @@
       scheduleInteractionRecheck('delete-med');
       updateDashboard();
     };
+    
+    // ============================================
+    // SIDE EFFECTS JOURNAL
+    // ============================================
+    
+    function logSideEffect(medId, medName) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.style.cssText = 'display:flex;z-index:10000';
+      modal.id = 'sideEffectModal';
+      
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width:550px">
+          <div class="modal-header">
+            <h2 class="modal-title">⚕️ Log Side Effect - ${medName}</h2>
+            <button class="modal-close" onclick="document.getElementById('sideEffectModal').remove()" aria-label="Close">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>What side effect are you experiencing?</label>
+              <select id="sideEffectType" onchange="toggleCustomSideEffect()" style="width:100%">
+                <option value="">Select a side effect...</option>
+                <optgroup label="Common">
+                  <option value="nausea">🤢 Nausea</option>
+                  <option value="headache">🤕 Headache</option>
+                  <option value="dizziness">😵 Dizziness</option>
+                  <option value="fatigue">😴 Fatigue/Drowsiness</option>
+                  <option value="insomnia">😵‍💫 Insomnia/Sleep Problems</option>
+                  <option value="dry_mouth">👄 Dry Mouth</option>
+                  <option value="stomach_upset">🤮 Stomach Upset</option>
+                  <option value="diarrhea">💩 Diarrhea</option>
+                  <option value="constipation">🚫 Constipation</option>
+                </optgroup>
+                <optgroup label="Mood/Mental">
+                  <option value="anxiety">😰 Anxiety</option>
+                  <option value="irritability">😤 Irritability</option>
+                  <option value="mood_changes">😔 Mood Changes</option>
+                  <option value="confusion">🤔 Confusion</option>
+                </optgroup>
+                <optgroup label="Physical">
+                  <option value="rash">🔴 Rash/Skin Reaction</option>
+                  <option value="muscle_pain">💪 Muscle Pain</option>
+                  <option value="joint_pain">🦴 Joint Pain</option>
+                  <option value="swelling">🫧 Swelling</option>
+                  <option value="heart_palpitations">💓 Heart Palpitations</option>
+                  <option value="weight_change">⚖️ Weight Changes</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="custom">✏️ Other (Describe Below)</option>
+                </optgroup>
+              </select>
+            </div>
+            
+            <div id="customSideEffectField" style="display:none" class="form-group">
+              <label>Describe the side effect:</label>
+              <input type="text" id="customSideEffect" placeholder="e.g., Blurred vision, ringing in ears">
+            </div>
+            
+            <div class="form-group">
+              <label>Severity (1-10)</label>
+              <input type="range" id="sideEffectSeverity" min="1" max="10" value="5" style="width:100%">
+              <div class="mood-scale">
+                <span>Mild</span>
+                <span id="severityValue">5 - Moderate</span>
+                <span>Severe</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Additional Notes (Optional)</label>
+              <textarea id="sideEffectNotes" rows="3" placeholder="When did it start? How long did it last? Any triggers?"></textarea>
+            </div>
+            
+            <div style="background:#fef3c7;padding:0.75rem;border-radius:var(--radius);border:1px solid #fcd34d;font-size:0.875rem;color:#92400e">
+              <strong>⚠️ Important:</strong> If you experience severe side effects like difficulty breathing, chest pain, severe rash, or allergic reactions, stop taking the medication and seek immediate medical attention.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('sideEffectModal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSideEffect(${medId}, '${medName.replace(/'/g, "\\'")}')">💾 Save Side Effect</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Update severity value display
+      document.getElementById('sideEffectSeverity').addEventListener('input', (e) => {
+        const value = e.target.value;
+        const labels = ['Mild', 'Mild', 'Mild', 'Moderate', 'Moderate', 'Moderate', 'Moderate', 'Severe', 'Severe', 'Very Severe'];
+        document.getElementById('severityValue').textContent = `${value} - ${labels[value - 1]}`;
+      });
+    }
+    
+    function toggleCustomSideEffect() {
+      const select = document.getElementById('sideEffectType');
+      const customField = document.getElementById('customSideEffectField');
+      customField.style.display = select.value === 'custom' ? 'block' : 'none';
+    }
+    
+    function saveSideEffect(medId, medName) {
+      const typeSelect = document.getElementById('sideEffectType');
+      let sideEffectType = typeSelect.value;
+      
+      if (!sideEffectType) {
+        alert('Please select a side effect type');
+        return;
+      }
+      
+      // If custom, use the custom text
+      if (sideEffectType === 'custom') {
+        const customText = document.getElementById('customSideEffect').value.trim();
+        if (!customText) {
+          alert('Please describe the side effect');
+          return;
+        }
+        sideEffectType = customText;
+      } else {
+        // Get the text label from the option
+        sideEffectType = typeSelect.options[typeSelect.selectedIndex].text.replace(/^[^\s]+\s/, ''); // Remove emoji
+      }
+      
+      const severity = parseInt(document.getElementById('sideEffectSeverity').value);
+      const notes = document.getElementById('sideEffectNotes').value.trim();
+      
+      const sideEffect = {
+        id: Date.now(),
+        medId: medId,
+        medName: medName,
+        type: sideEffectType,
+        severity: severity,
+        notes: notes,
+        date: new Date().toISOString()
+      };
+      
+      const sideEffects = DB.get('sideEffects') || [];
+      sideEffects.unshift(sideEffect);
+      DB.set('sideEffects', sideEffects);
+      
+      document.getElementById('sideEffectModal').remove();
+      alert(`✅ Side effect logged for ${medName}.\n\nIf symptoms persist or worsen, consult your healthcare provider.`);
+    }
+    
+    // Get side effects for a medication
+    function getMedicationSideEffects(medId) {
+      const sideEffects = DB.get('sideEffects') || [];
+      return sideEffects.filter(se => se.medId === medId);
+    }
 
     // ============================================
     // MEDICATION REMINDERS & REFILL TRACKING
@@ -6305,6 +6502,9 @@
                   ${statusIcon} ${statusText} - Undo
                 </button>
               `}
+              <button class="btn btn-secondary" onclick="logSideEffect(${log.medId}, '${log.medName.replace(/'/g, "\\'")}')" style="font-size:0.875rem;padding:0.375rem 0.75rem">
+                ⚕️ Log Side Effect
+              </button>
             </div>
           </div>
         `;
@@ -6511,6 +6711,136 @@
       loadSupplements();
       loadMedications();
       scheduleInteractionRecheck('delete-supplement');
+    }
+    
+    // Switch medication tabs
+    function switchMedicationTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.med-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.tab === tabName) {
+          tab.classList.add('active');
+        }
+      });
+      
+      // Update tab content
+      document.querySelectorAll('.med-tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      const activeContent = document.getElementById(`tab-${tabName}`);
+      if (activeContent) {
+        activeContent.classList.add('active');
+      }
+      
+      // Load data for specific tabs
+      if (tabName === 'today') {
+        loadMedications();
+      } else if (tabName === 'supplements') {
+        loadSupplements();
+      } else if (tabName === 'history') {
+        loadMedicationHistory();
+      } else if (tabName === 'side-effects') {
+        loadSideEffects();
+      } else if (tabName === 'interactions') {
+        scheduleInteractionRecheck('tab-switch');
+      }
+      
+      // Save preference
+      localStorage.setItem('stepsync_activeTab', tabName);
+    }
+    
+    // Load and display side effects journal
+    function loadSideEffects() {
+      const container = document.getElementById('sideEffectsList');
+      if (!container) return;
+      
+      const sideEffects = DB.get('sideEffects') || [];
+      
+      if (sideEffects.length === 0) {
+        container.innerHTML = '<div class="insight">No side effects logged yet. Click "⚕️ Log Side Effect" on any medication to track side effects.</div>';
+        return;
+      }
+      
+      // Group by medication
+      const byMed = {};
+      sideEffects.forEach(se => {
+        if (!byMed[se.medName]) {
+          byMed[se.medName] = [];
+        }
+        byMed[se.medName].push(se);
+      });
+      
+      let html = '<div style="display:flex;flex-direction:column;gap:1rem">';
+      
+      // Stats summary
+      const totalEffects = sideEffects.length;
+      const uniqueMeds = Object.keys(byMed).length;
+      const avgSeverity = sideEffects.reduce((sum, se) => sum + se.severity, 0) / totalEffects;
+      const severityColor = avgSeverity >= 7 ? '#ef4444' : avgSeverity >= 4 ? '#f59e0b' : '#10b981';
+      
+      html += `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:0.5rem">
+          <div style="padding:1rem;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--primary)">${totalEffects}</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary)">Total Side Effects</div>
+          </div>
+          <div style="padding:1rem;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--primary)">${uniqueMeds}</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary)">Medications</div>
+          </div>
+          <div style="padding:1rem;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="font-size:1.5rem;font-weight:700;color:${severityColor}">${avgSeverity.toFixed(1)}/10</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary)">Avg Severity</div>
+          </div>
+        </div>
+      `;
+      
+      // Side effects list grouped by medication
+      Object.keys(byMed).sort().forEach(medName => {
+        const effects = byMed[medName];
+        html += `
+          <div style="background:var(--card);padding:1rem;border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:0.75rem;color:var(--text)">💊 ${medName}</div>
+            <div style="display:flex;flex-direction:column;gap:0.75rem">
+        `;
+        
+        effects.forEach(se => {
+          const date = new Date(se.date);
+          const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const severityLabel = se.severity >= 7 ? 'Severe' : se.severity >= 4 ? 'Moderate' : 'Mild';
+          const severityColor = se.severity >= 7 ? '#ef4444' : se.severity >= 4 ? '#f59e0b' : '#10b981';
+          
+          html += `
+            <div style="padding:0.75rem;background:var(--bg-subtle);border-radius:var(--radius);border-left:3px solid ${severityColor}">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.375rem">
+                <div style="font-weight:600;color:var(--text)">${se.type}</div>
+                <div style="display:flex;align-items:center;gap:0.5rem">
+                  <span style="font-size:0.8125rem;padding:0.125rem 0.5rem;background:${severityColor};color:white;border-radius:var(--radius-full);font-weight:600">${se.severity}/10 ${severityLabel}</span>
+                  <button class="btn btn-danger" onclick="deleteSideEffect(${se.id})" style="padding:0.25rem 0.5rem;font-size:0.75rem" title="Delete">🗑️</button>
+                </div>
+              </div>
+              <div style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:0.375rem">${dateStr}</div>
+              ${se.notes ? `<div style="font-size:0.875rem;color:var(--text);margin-top:0.375rem;font-style:italic">"${se.notes}"</div>` : ''}
+            </div>
+          `;
+        });
+        
+        html += '</div></div>';
+      });
+      
+      html += '</div>';
+      
+      container.innerHTML = html;
+    }
+    
+    // Delete a side effect entry
+    function deleteSideEffect(id) {
+      if (!confirm('Delete this side effect log?')) return;
+      const sideEffects = DB.get('sideEffects') || [];
+      const filtered = sideEffects.filter(se => se.id !== id);
+      DB.set('sideEffects', filtered);
+      loadSideEffects();
     }
 
     // Mark medication as taken
