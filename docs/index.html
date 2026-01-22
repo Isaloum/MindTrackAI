@@ -1539,6 +1539,42 @@
           </div>
         </div>
       </div>
+      
+      <!-- Medication Adherence Score -->
+      <div class="card">
+        <div class="card-title">💊 Medication Adherence Score</div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;align-items:center">
+          <div style="text-align:center">
+            <div class="score-circle" id="adherenceCircle" style="width:120px;height:120px;margin:0 auto">
+              <span id="adherenceScore" style="font-size:2rem;font-weight:800">--</span>
+            </div>
+            <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.5rem">Overall Adherence</div>
+          </div>
+          <div>
+            <div style="display:grid;gap:0.75rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:rgba(16,185,129,0.1);border-radius:var(--radius-sm)">
+                <span style="font-size:0.875rem">📅 Last 7 Days</span>
+                <span id="adherence7days" style="font-weight:700;color:var(--accent)">--%</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:rgba(59,130,246,0.1);border-radius:var(--radius-sm)">
+                <span style="font-size:0.875rem">📊 Last 30 Days</span>
+                <span id="adherence30days" style="font-weight:700;color:#3b82f6">--%</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:rgba(168,85,247,0.1);border-radius:var(--radius-sm)">
+                <span style="font-size:0.875rem">✅ Total Doses Taken</span>
+                <span id="totalDosesTaken" style="font-weight:700;color:#a855f7">--</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:rgba(239,68,68,0.1);border-radius:var(--radius-sm)">
+                <span style="font-size:0.875rem">❌ Missed Doses</span>
+                <span id="totalDosesMissed" style="font-weight:700;color:#ef4444">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:var(--radius);border:1px solid rgba(59,130,246,0.3);font-size:0.875rem">
+          <strong>💡 Tip:</strong> Consistent medication adherence improves treatment outcomes. Set reminders and take medications at the same time each day.
+        </div>
+      </div>
 
       <!-- Share & Feedback Actions -->
       <div class="card">
@@ -1595,6 +1631,64 @@
 
     <!-- Medication -->
     <section id="medication" class="app-section">
+      
+      <!-- Medical Disclaimer -->
+      <div class="card" style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:2px solid #f59e0b;margin-bottom:1.5rem">
+        <div style="display:flex;align-items:flex-start;gap:1rem">
+          <div style="font-size:2.5rem;line-height:1;flex-shrink:0" aria-hidden="true">⚠️</div>
+          <div>
+            <div style="font-size:1.125rem;font-weight:800;color:#92400e;margin-bottom:0.5rem">⚕️ IMPORTANT MEDICAL NOTICE</div>
+            <div style="font-size:0.9375rem;color:#78350f;line-height:1.6;margin-bottom:0.75rem">
+              <strong>This app is for informational and tracking purposes only.</strong> It is NOT a substitute for professional medical advice, diagnosis, or treatment.
+            </div>
+            <div style="font-size:0.875rem;color:#78350f;line-height:1.5">
+              <strong>Always consult your doctor or pharmacist before:</strong>
+              <ul style="margin:0.5rem 0 0 1.25rem;padding:0">
+                <li>Starting, stopping, or changing any medication or supplement</li>
+                <li>Taking medications together (potential interactions)</li>
+                <li>If you experience any unusual symptoms or side effects</li>
+              </ul>
+            </div>
+            <div style="font-size:0.8125rem;color:#92400e;margin-top:0.75rem;font-weight:600">
+              📞 In case of emergency, call your doctor or emergency services immediately.
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Emergency Contacts -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📞 Emergency Contacts</span>
+          <button class="btn btn-secondary" onclick="toggleContactsEdit()" style="font-size:0.875rem;padding:0.375rem 0.75rem">
+            ✏️ Edit
+          </button>
+        </div>
+        <div id="contactsDisplay" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem"></div>
+        <div id="contactsEditForm" style="display:none">
+          <div style="display:grid;gap:1rem">
+            <div class="form-group">
+              <label>👨‍⚕️ Primary Doctor</label>
+              <input type="text" id="doctorName" placeholder="Dr. Smith" style="margin-bottom:0.5rem">
+              <input type="tel" id="doctorPhone" placeholder="(555) 123-4567">
+            </div>
+            <div class="form-group">
+              <label>💊 Pharmacy</label>
+              <input type="text" id="pharmacyName" placeholder="Main Street Pharmacy" style="margin-bottom:0.5rem">
+              <input type="tel" id="pharmacyPhone" placeholder="(555) 987-6543">
+            </div>
+            <div class="form-group">
+              <label>🏥 Emergency Contact</label>
+              <input type="text" id="emergencyName" placeholder="Family Member / Friend" style="margin-bottom:0.5rem">
+              <input type="tel" id="emergencyPhone" placeholder="(555) 456-7890">
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem;margin-top:1rem">
+            <button class="btn btn-primary" onclick="saveContacts()">💾 Save Contacts</button>
+            <button class="btn btn-secondary" onclick="toggleContactsEdit()">Cancel</button>
+          </div>
+        </div>
+      </div>
       
       <div class="card">
         <div class="card-title">💊 Add Medication or Supplement</div>
@@ -1878,6 +1972,9 @@
         </div>
       </div>
       <div class="footer-right">
+        <button class="footer-link" onclick="exportMedicalReport()" style="cursor:pointer;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:0.5rem 1rem;border-radius:var(--radius);font-weight:700" aria-label="Export medication list for doctor">
+          <span aria-hidden="true">👨‍⚕️</span> Export for Doctor
+        </button>
         <button class="footer-link" onclick="signOut()" style="cursor:pointer" aria-label="Sign out and clear all data">
           <span aria-hidden="true">🚪</span> Sign Out
         </button>
@@ -2142,6 +2239,215 @@
       a.download = `stepsync-export-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      
+      // Record backup date
+      localStorage.setItem('mindtrack_lastBackupDate', new Date().getTime().toString());
+    }
+    
+    // ============================================
+    // MEDICAL REPORT EXPORT FOR DOCTOR
+    // ============================================
+    async function exportMedicalReport() {
+      const medications = DB.get('medications');
+      const userName = DB.getOne('userName') || 'Patient';
+      const exportDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      // Get all interactions
+      const interactions = await checkDrugInteractions(medications);
+      
+      // Build HTML report
+      let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Medication List - ${userName}</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      max-width: 800px; 
+      margin: 2rem auto; 
+      padding: 2rem;
+      background: #fff;
+      color: #000;
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 2rem; 
+      border-bottom: 3px solid #10b981;
+      padding-bottom: 1rem;
+    }
+    .header h1 { 
+      margin: 0; 
+      color: #10b981; 
+      font-size: 1.75rem;
+    }
+    .header p { 
+      margin: 0.5rem 0 0; 
+      color: #666; 
+      font-size: 0.9rem;
+    }
+    .disclaimer {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      font-size: 0.875rem;
+    }
+    .disclaimer strong { color: #92400e; }
+    h2 { 
+      color: #10b981; 
+      border-bottom: 2px solid #d1fae5;
+      padding-bottom: 0.5rem;
+      margin-top: 2rem;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 1rem 0;
+    }
+    th, td { 
+      padding: 0.75rem; 
+      text-align: left; 
+      border: 1px solid #ddd;
+    }
+    th { 
+      background: #10b981; 
+      color: white; 
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background: #f9fafb; }
+    .interaction-warning {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+    }
+    .interaction-critical {
+      background: #fecaca;
+      border-color: #dc2626;
+      font-weight: 600;
+    }
+    .type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .type-prescription { background: #dbeafe; color: #1e40af; }
+    .type-otc { background: #fce7f3; color: #9f1239; }
+    .type-supplement { background: #d1fae5; color: #065f46; }
+    @media print {
+      body { margin: 0; padding: 1rem; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🧠 MindTrackAI - Medical Medication Report</h1>
+    <p>Patient: <strong>${userName}</strong></p>
+    <p>Report Generated: <strong>${exportDate}</strong></p>
+  </div>
+  
+  <div class="disclaimer">
+    <strong>⚠️ MEDICAL DISCLAIMER:</strong> This report is generated from patient self-reported data using MindTrackAI tracking app. 
+    Information may be incomplete or inaccurate. Please verify all medications, dosages, and frequencies with the patient.
+  </div>
+
+  <h2>💊 Current Medications & Supplements</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Dosage</th>
+        <th>Frequency</th>
+        <th>Route</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+      medications.forEach(med => {
+        const typeBadge = med.type === 'prescription' ? 'type-prescription' : 
+                         med.type === 'otc' ? 'type-otc' : 'type-supplement';
+        const typeLabel = med.type === 'prescription' ? 'Rx' : 
+                         med.type === 'otc' ? 'OTC' : 'Supplement';
+        
+        html += `
+      <tr>
+        <td><span class="type-badge ${typeBadge}">${typeLabel}</span></td>
+        <td><strong>${med.name}</strong></td>
+        <td>${med.dosage || 'Not specified'}</td>
+        <td>${med.frequency || 'Not specified'}</td>
+        <td>${med.route || 'Oral'}</td>
+      </tr>`;
+      });
+
+      html += `
+    </tbody>
+  </table>`;
+
+      // Add interactions section
+      if (interactions && interactions.length > 0) {
+        html += `
+  <h2>⚠️ Potential Drug Interactions (${interactions.length})</h2>
+  <div style="margin-bottom:1rem;font-size:0.875rem;color:#666">
+    The following potential interactions were identified. Please review with patient and assess clinical significance.
+  </div>`;
+
+        interactions.forEach(interaction => {
+          const isCritical = interaction.description.includes('🚨 CRITICAL') || 
+                            interaction.description.includes('FATAL') ||
+                            interaction.description.includes('NEVER combine');
+          
+          html += `
+  <div class="interaction-warning ${isCritical ? 'interaction-critical' : ''}">
+    <strong>${interaction.drug1} + ${interaction.drug2}</strong><br>
+    ${interaction.description.replace(/🚨|⚠️/g, '')}
+  </div>`;
+        });
+      } else {
+        html += `
+  <h2>✅ Drug Interactions</h2>
+  <p style="color:#10b981;font-weight:600">No known interactions detected between current medications.</p>`;
+      }
+
+      // Add notes section
+      html += `
+  <h2>📋 Additional Notes</h2>
+  <div style="border:1px solid #ddd;padding:1rem;border-radius:6px;min-height:100px;background:#f9fafb">
+    <em>Space for healthcare provider notes...</em>
+  </div>
+
+  <div style="margin-top:3rem;padding-top:1rem;border-top:1px solid #ddd;font-size:0.75rem;color:#666;text-align:center">
+    Generated by MindTrackAI • For medical professional use only • Verify all information with patient
+  </div>
+  
+  <div class="no-print" style="text-align:center;margin-top:2rem">
+    <button onclick="window.print()" style="background:#10b981;color:white;border:none;padding:0.75rem 1.5rem;border-radius:6px;font-size:1rem;cursor:pointer;font-weight:600">
+      🖨️ Print Report
+    </button>
+  </div>
+</body>
+</html>`;
+
+      // Open in new window for printing
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(html);
+      printWindow.document.close();
+      
+      // Auto-trigger print dialog after 500ms
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
     }
 
     // ============================================
@@ -2655,6 +2961,232 @@
       }
     });
 
+    // ============================================
+    // EMERGENCY CONTACTS MANAGEMENT
+    // ============================================
+    
+    function calculateMedicationAdherence() {
+      const medicationLogs = DB.get('medicationLogs') || [];
+      const now = new Date();
+      
+      // Last 7 days
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const logs7days = medicationLogs.filter(log => new Date(log.timestamp) >= sevenDaysAgo);
+      const taken7days = logs7days.filter(log => log.status === 'taken' || log.status === 'late').length;
+      const total7days = logs7days.length;
+      const adherence7days = total7days > 0 ? Math.round((taken7days / total7days) * 100) : 0;
+      
+      // Last 30 days
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const logs30days = medicationLogs.filter(log => new Date(log.timestamp) >= thirtyDaysAgo);
+      const taken30days = logs30days.filter(log => log.status === 'taken' || log.status === 'late').length;
+      const total30days = logs30days.length;
+      const adherence30days = total30days > 0 ? Math.round((taken30days / total30days) * 100) : 0;
+      
+      // Overall (all time)
+      const takenAll = medicationLogs.filter(log => log.status === 'taken' || log.status === 'late').length;
+      const missedAll = medicationLogs.filter(log => log.status === 'missed' || log.status === 'skipped').length;
+      const totalAll = medicationLogs.length;
+      const adherenceAll = totalAll > 0 ? Math.round((takenAll / totalAll) * 100) : 0;
+      
+      // Update UI
+      document.getElementById('adherenceScore').textContent = adherenceAll + '%';
+      document.getElementById('adherence7days').textContent = adherence7days + '%';
+      document.getElementById('adherence30days').textContent = adherence30days + '%';
+      document.getElementById('totalDosesTaken').textContent = takenAll;
+      document.getElementById('totalDosesMissed').textContent = missedAll;
+      
+      // Update circle color
+      const circle = document.getElementById('adherenceCircle');
+      circle.className = 'score-circle ' + 
+        (adherenceAll >= 90 ? 'score-good' : 
+         adherenceAll >= 70 ? 'score-medium' : 
+         'score-low');
+      
+      return {
+        overall: adherenceAll,
+        last7days: adherence7days,
+        last30days: adherence30days,
+        totalTaken: takenAll,
+        totalMissed: missedAll
+      };
+    }
+    
+    function loadEmergencyContacts() {
+      const contacts = DB.get('emergencyContacts') || {};
+      const display = document.getElementById('contactsDisplay');
+      
+      if (!contacts.doctorName && !contacts.pharmacyName && !contacts.emergencyName) {
+        display.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-secondary)">
+            <div style="font-size:2rem;margin-bottom:0.5rem">👨‍⚕️</div>
+            <div>No emergency contacts saved yet.</div>
+            <div style="font-size:0.875rem;margin-top:0.5rem">Click "Edit" to add your doctor, pharmacy, and emergency contact information.</div>
+          </div>
+        `;
+        return;
+      }
+      
+      let html = '';
+      
+      if (contacts.doctorName || contacts.doctorPhone) {
+        html += `
+          <div style="background:rgba(16,185,129,0.1);padding:1rem;border-radius:var(--radius);border:1px solid rgba(16,185,129,0.3)">
+            <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent)">👨‍⚕️ Primary Doctor</div>
+            ${contacts.doctorName ? `<div style="color:var(--text)">${contacts.doctorName}</div>` : ''}
+            ${contacts.doctorPhone ? `<div style="color:var(--text);margin-top:0.25rem"><a href="tel:${contacts.doctorPhone}" style="color:var(--accent);text-decoration:none;font-weight:600">${contacts.doctorPhone}</a></div>` : ''}
+          </div>
+        `;
+      }
+      
+      if (contacts.pharmacyName || contacts.pharmacyPhone) {
+        html += `
+          <div style="background:rgba(59,130,246,0.1);padding:1rem;border-radius:var(--radius);border:1px solid rgba(59,130,246,0.3)">
+            <div style="font-weight:700;margin-bottom:0.5rem;color:#3b82f6">💊 Pharmacy</div>
+            ${contacts.pharmacyName ? `<div style="color:var(--text)">${contacts.pharmacyName}</div>` : ''}
+            ${contacts.pharmacyPhone ? `<div style="color:var(--text);margin-top:0.25rem"><a href="tel:${contacts.pharmacyPhone}" style="color:#3b82f6;text-decoration:none;font-weight:600">${contacts.pharmacyPhone}</a></div>` : ''}
+          </div>
+        `;
+      }
+      
+      if (contacts.emergencyName || contacts.emergencyPhone) {
+        html += `
+          <div style="background:rgba(239,68,68,0.1);padding:1rem;border-radius:var(--radius);border:1px solid rgba(239,68,68,0.3)">
+            <div style="font-weight:700;margin-bottom:0.5rem;color:#ef4444">🏥 Emergency Contact</div>
+            ${contacts.emergencyName ? `<div style="color:var(--text)">${contacts.emergencyName}</div>` : ''}
+            ${contacts.emergencyPhone ? `<div style="color:var(--text);margin-top:0.25rem"><a href="tel:${contacts.emergencyPhone}" style="color:#ef4444;text-decoration:none;font-weight:600">${contacts.emergencyPhone}</a></div>` : ''}
+          </div>
+        `;
+      }
+      
+      display.innerHTML = html;
+    }
+    
+    function toggleContactsEdit() {
+      const display = document.getElementById('contactsDisplay');
+      const form = document.getElementById('contactsEditForm');
+      
+      if (form.style.display === 'none') {
+        // Show form, load current values
+        const contacts = DB.get('emergencyContacts') || {};
+        document.getElementById('doctorName').value = contacts.doctorName || '';
+        document.getElementById('doctorPhone').value = contacts.doctorPhone || '';
+        document.getElementById('pharmacyName').value = contacts.pharmacyName || '';
+        document.getElementById('pharmacyPhone').value = contacts.pharmacyPhone || '';
+        document.getElementById('emergencyName').value = contacts.emergencyName || '';
+        document.getElementById('emergencyPhone').value = contacts.emergencyPhone || '';
+        
+        display.style.display = 'none';
+        form.style.display = 'block';
+      } else {
+        // Hide form, show display
+        display.style.display = 'grid';
+        form.style.display = 'none';
+      }
+    }
+    
+    function saveContacts() {
+      const contacts = {
+        doctorName: document.getElementById('doctorName').value.trim(),
+        doctorPhone: document.getElementById('doctorPhone').value.trim(),
+        pharmacyName: document.getElementById('pharmacyName').value.trim(),
+        pharmacyPhone: document.getElementById('pharmacyPhone').value.trim(),
+        emergencyName: document.getElementById('emergencyName').value.trim(),
+        emergencyPhone: document.getElementById('emergencyPhone').value.trim()
+      };
+      
+      DB.set('emergencyContacts', contacts);
+      toggleContactsEdit();
+      loadEmergencyContacts();
+      
+      // Show success message
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '✓ Saved!';
+      btn.style.background = 'var(--accent)';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+      }, 2000);
+    }
+    
+    // ============================================
+    // BACKUP REMINDER SYSTEM (30-DAY CHECK)
+    // ============================================
+    
+    function checkBackupReminder() {
+      const lastBackupDate = localStorage.getItem('mindtrack_lastBackupDate');
+      const dismissedUntil = localStorage.getItem('mindtrack_backupReminderDismissedUntil');
+      const currentTime = new Date().getTime();
+      const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      
+      // Check if dismissed and still within dismissal period
+      if (dismissedUntil && currentTime < parseInt(dismissedUntil)) {
+        return; // Still dismissed
+      }
+      
+      if (!lastBackupDate || (currentTime - parseInt(lastBackupDate)) > thirtyDaysMs) {
+        // Show backup reminder modal
+        setTimeout(() => {
+          showBackupReminderModal();
+        }, 2000); // Show after 2 seconds to avoid overwhelming user on load
+      }
+    }
+    
+    function showBackupReminderModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.style.cssText = 'display:flex;z-index:10000';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width:500px">
+          <div class="modal-header">
+            <h2 class="modal-title" style="display:flex;align-items:center;gap:0.5rem">
+              <span style="font-size:1.5rem">💾</span>
+              <span>Backup Your Health Data</span>
+            </h2>
+            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" aria-label="Close">×</button>
+          </div>
+          <div class="modal-body">
+            <p style="color:var(--text);margin-bottom:1rem">
+              It's been over 30 days since your last backup. Protect your health tracking data by creating a backup now.
+            </p>
+            <div style="background:rgba(16,185,129,0.1);padding:1rem;border-radius:var(--radius);border:1px solid rgba(16,185,129,0.3);margin-bottom:1rem">
+              <div style="font-weight:700;margin-bottom:0.5rem;color:var(--accent)">✓ What's included in your backup:</div>
+              <ul style="margin:0;padding-left:1.25rem;color:var(--text-secondary)">
+                <li>All medications and supplements</li>
+                <li>Mood, sleep, and exercise history</li>
+                <li>Your wellness tracking data</li>
+              </ul>
+            </div>
+            <div style="background:rgba(239,68,68,0.1);padding:0.75rem;border-radius:var(--radius);border:1px solid rgba(239,68,68,0.3);font-size:0.875rem;color:#dc2626">
+              ⚠️ <strong>Important:</strong> This app stores all data locally on your device. If you clear your browser data or lose this device, your health tracking history will be permanently lost without a backup.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="dismissBackupReminder()">Remind Me Later</button>
+            <button class="btn btn-primary" onclick="exportDataFromReminder()">📥 Export Backup Now</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    function dismissBackupReminder() {
+      // Dismiss for 7 days
+      const dismissedUntil = new Date().getTime() + (7 * 24 * 60 * 60 * 1000);
+      localStorage.setItem('mindtrack_backupReminderDismissedUntil', dismissedUntil);
+      document.querySelector('.modal-overlay')?.remove();
+    }
+    
+    function exportDataFromReminder() {
+      // Mark backup as completed
+      localStorage.setItem('mindtrack_lastBackupDate', new Date().getTime().toString());
+      document.querySelector('.modal-overlay')?.remove();
+      
+      // Trigger export
+      exportData();
+    }
+    
     // ============================================
     // THEME TOGGLE FUNCTION - Duplicate removed (use one at line ~1643)
     // ============================================
@@ -4444,6 +4976,11 @@
                 </div>
                 <div style="padding-left:0.5rem;border-top:1px solid rgba(0,0,0,0.1);padding-top:1rem">
                   ${evidenceHtml}
+                  <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,0.1)">
+                    <button onclick="window.open('https://www.healthline.com/find-care/articles/primary-care-doctors/how-to-find-a-doctor', '_blank')" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 1.25rem;border-radius:6px;font-weight:600;cursor:pointer;font-size:0.9375rem;width:100%;transition:all 0.2s" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+                      👨‍⚕️ Consult Your Doctor About This Interaction
+                    </button>
+                  </div>
                 </div>
               </div>
             `;
@@ -6498,6 +7035,9 @@
 
       document.getElementById('insightsList').innerHTML = insights.map(i => `<div class="insight ${i.type}">${i.text}</div>`).join('');
 
+      // Calculate medication adherence score
+      calculateMedicationAdherence();
+
       // Charts can be expensive; only update when Dashboard is the active tab.
       const dashboardSection = document.getElementById('dashboard');
       if (dashboardSection && dashboardSection.classList.contains('active')) {
@@ -6574,6 +7114,7 @@
     loadMoodHistory();
     loadMedications();
     loadMedicationHistory(); // Load history view
+    loadEmergencyContacts(); // Load emergency contacts
     
     // Restore active tab preference
     const activeTab = localStorage.getItem('stepsync_activeTab') || 'today';
@@ -6628,6 +7169,9 @@
     updateProfile();
     moodEmoji.textContent = moodEmojis[4];
     showOnboarding();
+    
+    // Check for backup reminder (30 days)
+    checkBackupReminder();
     
     // Medication tab switcher
     window.switchMedicationTab = function(tabName) {
