@@ -1696,6 +1696,54 @@
         </div>
       </div>
       
+      <!-- Pill Identification Tool -->
+      <div class="card">
+        <div class="card-title">🔍 Pill Identification Tool</div>
+        <div style="background:var(--bg-subtle);padding:1rem;border-radius:var(--radius);border-left:3px solid var(--primary);margin-bottom:1rem">
+          <div style="font-weight:600;margin-bottom:0.375rem">Can't identify a pill?</div>
+          <div style="font-size:0.875rem;color:var(--text-secondary)">Describe the pill's physical characteristics to help identify it.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem">
+          <div class="form-group">
+            <label>Shape</label>
+            <select id="pillShape">
+              <option value="">Select shape...</option>
+              <option value="round">⭕ Round</option>
+              <option value="oval">🥚 Oval</option>
+              <option value="capsule">💊 Capsule</option>
+              <option value="oblong">▭ Oblong</option>
+              <option value="square">▢ Square</option>
+              <option value="diamond">◆ Diamond</option>
+              <option value="triangle">▲ Triangle</option>
+              <option value="other">❓ Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Color</label>
+            <select id="pillColor">
+              <option value="">Select color...</option>
+              <option value="white">⚪ White</option>
+              <option value="yellow">🟡 Yellow</option>
+              <option value="orange">🟠 Orange</option>
+              <option value="red">🔴 Red</option>
+              <option value="pink">🩷 Pink</option>
+              <option value="purple">🟣 Purple</option>
+              <option value="blue">🔵 Blue</option>
+              <option value="green">🟢 Green</option>
+              <option value="brown">🟤 Brown</option>
+              <option value="gray">⚫ Gray/Black</option>
+              <option value="multi">🌈 Multi-color</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Imprint/Code</label>
+            <input type="text" id="pillImprint" placeholder="e.g., L544, M365" style="text-transform:uppercase">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="identifyPill()">🔍 Identify Pill</button>
+        <div id="pillResults" style="margin-top:1rem"></div>
+      </div>
+      
       <div class="card">
         <div class="card-title">💊 Add Medication or Supplement</div>
         <div style="display:grid;grid-template-columns:1fr 1.2fr 0.7fr 1fr 0.8fr;gap:1rem">
@@ -1800,6 +1848,32 @@
           </div>
         </div>
         
+        <!-- Prescription Renewal Tracking Row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);align-items:start">
+          <div class="form-group" style="margin:0">
+            <label style="margin-bottom:0.5rem;display:block">📋 Prescription Expiry (Optional)</label>
+            <input type="date" id="prescriptionExpiry" style="width:100%">
+            <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem">When prescription expires</div>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label style="margin-bottom:0.5rem;display:block">📞 Pharmacy Phone (Optional)</label>
+            <input type="tel" id="pharmacyPhone" placeholder="e.g., (555) 123-4567" style="width:100%">
+            <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem">For quick refill calls</div>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label style="margin-bottom:0.5rem;display:block">🔔 Renewal Alert (Optional)</label>
+            <select id="renewalAlertDays" style="width:100%">
+              <option value="">No alert</option>
+              <option value="7">7 days before</option>
+              <option value="14">14 days before</option>
+              <option value="30">30 days before</option>
+              <option value="60">60 days before</option>
+              <option value="90">90 days before</option>
+            </select>
+            <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem">Get reminded to renew</div>
+          </div>
+        </div>
+        
         <div style="margin-top:0.5rem">
           <div id="dosageDetected" style="font-size:0.75rem;color:var(--primary);font-weight:500"></div>
           <div id="dosageWarning" style="margin-top:0.5rem;font-size:0.8125rem;"></div>
@@ -1856,6 +1930,9 @@
           <button class="med-tab" onclick="switchMedicationTab('side-effects')" data-tab="side-effects">
             ⚕️ Side Effects
           </button>
+          <button class="med-tab" onclick="switchMedicationTab('adherence')" data-tab="adherence">
+            📊 Adherence Insights
+          </button>
           <button class="med-tab" onclick="switchMedicationTab('interactions')" data-tab="interactions">
             ⚠️ Interactions<span class="interaction-badge" id="interactionBadge" style="display:none"></span>
           </button>
@@ -1881,8 +1958,6 @@
           </div>
           <div id="effectivenessList"></div>
         </div>
-          <div id="medicationHistory"></div>
-        </div>
         
         <div class="med-tab-content" id="tab-side-effects">
           <div style="margin-bottom:1rem;padding:0.875rem;background:var(--bg-subtle);border-radius:var(--radius);border-left:3px solid var(--primary)">
@@ -1890,6 +1965,14 @@
             <div style="font-size:0.875rem;color:var(--text-secondary)">Track medication side effects to discuss with your healthcare provider.</div>
           </div>
           <div id="sideEffectsList"></div>
+        </div>
+        
+        <div class="med-tab-content" id="tab-adherence">
+          <div style="margin-bottom:1rem;padding:0.875rem;background:var(--bg-subtle);border-radius:var(--radius);border-left:3px solid var(--primary)">
+            <div style="font-weight:600;margin-bottom:0.375rem">📊 Medication Adherence Insights</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary)">Analyze your medication-taking patterns and get improvement suggestions.</div>
+          </div>
+          <div id="adherenceInsights"></div>
         </div>
 
         <div class="med-tab-content" id="tab-interactions">
@@ -3189,6 +3272,294 @@
         loadMedications();
         loadSupplements();
       }
+    }
+
+    // ============================================
+    // PILL IDENTIFICATION
+    // ============================================
+    
+    function identifyPill() {
+      const shape = document.getElementById('pillShape').value;
+      const color = document.getElementById('pillColor').value;
+      const imprint = document.getElementById('pillImprint').value.trim().toUpperCase();
+      const resultsDiv = document.getElementById('pillResults');
+      
+      if (!shape && !color && !imprint) {
+        alert('Please enter at least one pill characteristic (shape, color, or imprint)');
+        return;
+      }
+      
+      resultsDiv.innerHTML = '<div style="color:var(--text-secondary)">🔍 Searching pill database...</div>';
+      
+      // Common pill database (simplified version)
+      const pillDatabase = [
+        { name: 'Aspirin 325mg', shape: 'round', color: 'white', imprint: 'BAYER', type: 'OTC' },
+        { name: 'Ibuprofen 200mg', shape: 'round', color: 'orange', imprint: 'I-2', type: 'OTC' },
+        { name: 'Acetaminophen 500mg', shape: 'capsule', color: 'red', imprint: 'TYLENOL', type: 'OTC' },
+        { name: 'Lisinopril 10mg', shape: 'round', color: 'pink', imprint: 'E101', type: 'Rx' },
+        { name: 'Metformin 500mg', shape: 'round', color: 'white', imprint: 'M500', type: 'Rx' },
+        { name: 'Atorvastatin 20mg', shape: 'oval', color: 'white', imprint: 'PD155', type: 'Rx' },
+        { name: 'Omeprazole 20mg', shape: 'capsule', color: 'purple', imprint: 'A 20', type: 'Rx' },
+        { name: 'Amlodipine 5mg', shape: 'round', color: 'white', imprint: 'AMN5', type: 'Rx' },
+        { name: 'Vitamin D3 1000 IU', shape: 'oval', color: 'yellow', imprint: 'D3', type: 'Supplement' }
+      ];
+      
+      // Filter pills based on criteria
+      let matches = pillDatabase.filter(pill => {
+        let match = true;
+        if (shape && pill.shape !== shape) match = false;
+        if (color && pill.color !== color) match = false;
+        if (imprint && !pill.imprint.includes(imprint)) match = false;
+        return match;
+      });
+      
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = `
+          <div style="background:#fef3c7;padding:1rem;border-radius:var(--radius);border:1px solid #fcd34d">
+            <div style="font-weight:600;margin-bottom:0.5rem">❌ No Matches Found</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:0.75rem">
+              We couldn't identify this pill in our database. For accurate identification:
+            </div>
+            <ul style="font-size:0.875rem;color:var(--text-secondary);margin:0;padding-left:1.25rem">
+              <li>Contact your pharmacist</li>
+              <li>Use FDA's pill identifier at fda.gov/drugs</li>
+              <li>Try NIH's Pillbox at pillbox.nlm.nih.gov</li>
+              <li>Call poison control if uncertain: 1-800-222-1222</li>
+            </ul>
+          </div>
+        `;
+      } else {
+        let html = '<div style="display:flex;flex-direction:column;gap:0.75rem">';
+        html += `<div style="font-weight:600;margin-bottom:0.5rem">✅ ${matches.length} Possible Match${matches.length !== 1 ? 'es' : ''} Found</div>`;
+        
+        matches.forEach(pill => {
+          const typeColor = pill.type === 'Rx' ? '#3b82f6' : pill.type === 'OTC' ? '#ec4899' : '#10b981';
+          html += `
+            <div style="background:var(--card);padding:1rem;border-radius:var(--radius);border:1px solid var(--border)">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.5rem">
+                <div style="font-weight:700;font-size:1rem">${pill.name}</div>
+                <span style="background:${typeColor};color:white;padding:0.25rem 0.5rem;border-radius:var(--radius-full);font-size:0.75rem;font-weight:600">${pill.type}</span>
+              </div>
+              <div style="font-size:0.875rem;color:var(--text-secondary)">
+                ${pill.shape} • ${pill.color} • Imprint: ${pill.imprint}
+              </div>
+            </div>
+          `;
+        });
+        
+        html += `
+          <div style="background:var(--bg-subtle);padding:0.75rem;border-radius:var(--radius);font-size:0.875rem;color:var(--text-secondary);border:1px solid var(--border)">
+            ⚠️ <strong>Disclaimer:</strong> This is an identification guide only. Always verify with your pharmacist or doctor before taking any medication.
+          </div>
+        </div>`;
+        
+        resultsDiv.innerHTML = html;
+      }
+    }
+    
+    // ============================================
+    // PRESCRIPTION RENEWAL REMINDERS
+    // ============================================
+    
+    function checkPrescriptionRenewals() {
+      const definitions = DB.get('medicationDefinitions');
+      const today = new Date();
+      const renewalAlerts = [];
+      
+      definitions.forEach(med => {
+        if (med.prescriptionExpiry && med.renewalAlertDays) {
+          const expiryDate = new Date(med.prescriptionExpiry);
+          const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilExpiry <= med.renewalAlertDays && daysUntilExpiry > 0) {
+            renewalAlerts.push({
+              medication: med,
+              daysRemaining: daysUntilExpiry
+            });
+          } else if (daysUntilExpiry <= 0) {
+            renewalAlerts.push({
+              medication: med,
+              daysRemaining: 0,
+              expired: true
+            });
+          }
+        }
+      });
+      
+      return renewalAlerts;
+    }
+    
+    function showRenewalAlerts() {
+      const alerts = checkPrescriptionRenewals();
+      
+      if (alerts.length === 0) return;
+      
+      let message = '📋 Prescription Renewal Reminders:\n\n';
+      
+      alerts.forEach(alert => {
+        if (alert.expired) {
+          message += `🚨 ${alert.medication.name} - EXPIRED! Renew immediately.\n`;
+        } else {
+          message += `⚠️ ${alert.medication.name} - Expires in ${alert.daysRemaining} day${alert.daysRemaining !== 1 ? 's' : ''}.\n`;
+        }
+        
+        if (alert.medication.pharmacyName) {
+          message += `   Pharmacy: ${alert.medication.pharmacyName}`;
+          if (alert.medication.pharmacyPhone) {
+            message += ` - ${alert.medication.pharmacyPhone}`;
+          }
+          message += '\n';
+        }
+        message += '\n';
+      });
+      
+      alert(message);
+    }
+    
+    // Check renewals on load
+    setTimeout(showRenewalAlerts, 3000);
+
+    // ============================================
+    // ADHERENCE INSIGHTS & ANALYTICS
+    // ============================================
+    function loadAdherenceInsights() {
+      const logs = DB.get('medicationLogs') || [];
+      const medications = DB.get('medicationDefinitions') || [];
+      const container = document.getElementById('adherenceInsights');
+      
+      if (!container) return;
+      
+      if (medications.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-secondary)">📊 Add medications to see adherence insights</div>';
+        return;
+      }
+      
+      const now = new Date();
+      const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+      const ninetyDaysAgo = new Date(now - 90 * 24 * 60 * 60 * 1000);
+      
+      // Filter logs by time period
+      const logs7 = logs.filter(log => new Date(log.scheduledFor) >= sevenDaysAgo);
+      const logs30 = logs.filter(log => new Date(log.scheduledFor) >= thirtyDaysAgo);
+      const logs90 = logs.filter(log => new Date(log.scheduledFor) >= ninetyDaysAgo);
+      
+      // Calculate adherence rates
+      const calculateAdherence = (periodLogs) => {
+        if (periodLogs.length === 0) return 0;
+        const taken = periodLogs.filter(log => log.status === 'taken').length;
+        return Math.round((taken / periodLogs.length) * 100);
+      };
+      
+      const adherence7 = calculateAdherence(logs7);
+      const adherence30 = calculateAdherence(logs30);
+      const adherence90 = calculateAdherence(logs90);
+      
+      // Time-of-day analysis
+      const timePatterns = {};
+      logs30.forEach(log => {
+        if (!log.time) return;
+        const hour = parseInt(log.time.split(':')[0]);
+        let period;
+        if (hour >= 5 && hour < 12) period = 'Morning (5am-12pm)';
+        else if (hour >= 12 && hour < 17) period = 'Afternoon (12pm-5pm)';
+        else if (hour >= 17 && hour < 21) period = 'Evening (5pm-9pm)';
+        else period = 'Night (9pm-5am)';
+        
+        if (!timePatterns[period]) {
+          timePatterns[period] = { total: 0, taken: 0 };
+        }
+        timePatterns[period].total++;
+        if (log.status === 'taken') timePatterns[period].taken++;
+      });
+      
+      // Find worst time period
+      let worstTime = null;
+      let worstRate = 100;
+      Object.entries(timePatterns).forEach(([period, data]) => {
+        const rate = (data.taken / data.total) * 100;
+        if (rate < worstRate) {
+          worstRate = rate;
+          worstTime = period;
+        }
+      });
+      
+      // Generate recommendations
+      const recommendations = [];
+      if (adherence7 < 80) {
+        recommendations.push('Your 7-day adherence is below 80%. Try setting more frequent reminders.');
+      }
+      if (worstTime && worstRate < 70) {
+        recommendations.push(`You miss ${Math.round(100 - worstRate)}% of ${worstTime.toLowerCase()} doses. Consider setting a phone alarm for this time.`);
+      }
+      if (adherence30 >= 90) {
+        recommendations.push('🎉 Excellent adherence! Keep up the great work!');
+      }
+      if (adherence30 < adherence90 && adherence90 > 70) {
+        recommendations.push('Your adherence has decreased recently. Review what changed in your routine.');
+      }
+      
+      // Build HTML
+      let html = `
+        <div style="padding:1.5rem">
+          <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:1.5rem;color:var(--text)">📊 Adherence Analytics</h3>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem">
+            <div class="stat-card">
+              <div class="stat-value" style="color:${adherence7 >= 80 ? '#10b981' : adherence7 >= 60 ? '#f59e0b' : '#ef4444'}">${adherence7}%</div>
+              <div class="stat-label">7-Day Adherence</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="color:${adherence30 >= 80 ? '#10b981' : adherence30 >= 60 ? '#f59e0b' : '#ef4444'}">${adherence30}%</div>
+              <div class="stat-label">30-Day Adherence</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="color:${adherence90 >= 80 ? '#10b981' : adherence90 >= 60 ? '#f59e0b' : '#ef4444'}">${adherence90}%</div>
+              <div class="stat-label">90-Day Adherence</div>
+            </div>
+          </div>
+          
+          <div style="background:var(--bg-subtle);padding:1.25rem;border-radius:var(--radius);margin-bottom:2rem">
+            <h4 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--text)">⏰ Time-of-Day Patterns</h4>
+            <div style="display:flex;flex-direction:column;gap:0.75rem">
+      `;
+      
+      Object.entries(timePatterns).forEach(([period, data]) => {
+        const rate = Math.round((data.taken / data.total) * 100);
+        const color = rate >= 80 ? '#10b981' : rate >= 60 ? '#f59e0b' : '#ef4444';
+        html += `
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
+              <span style="font-size:0.875rem;font-weight:500">${period}</span>
+              <span style="font-size:0.875rem;font-weight:600;color:${color}">${rate}%</span>
+            </div>
+            <div style="height:8px;background:var(--bg);border-radius:999px;overflow:hidden">
+              <div style="width:${rate}%;height:100%;background:${color};transition:width 0.3s"></div>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `
+            </div>
+          </div>
+          
+          <div style="background:var(--primary);background:linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);color:white;padding:1.25rem;border-radius:var(--radius)">
+            <h4 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem">💡 Personalized Recommendations</h4>
+            <ul style="margin:0;padding-left:1.25rem;line-height:1.6">
+      `;
+      
+      recommendations.forEach(rec => {
+        html += `<li style="margin-bottom:0.5rem">${rec}</li>`;
+      });
+      
+      html += `
+            </ul>
+          </div>
+        </div>
+      `;
+      
+      container.innerHTML = html;
     }
 
     // ============================================
@@ -4676,7 +5047,12 @@
         stJohnsWort: ["st john's wort", 'st. john\'s wort'],
         ginkgo: ['ginkgo', 'ginkgo biloba'],
         fishOil: ['fish oil', 'omega 3', 'omega-3'],
-        vitaminK: ['vitamin k', 'vitamin k1', 'vitamin k2']
+        vitaminK: ['vitamin k', 'vitamin k1', 'vitamin k2'],
+        
+        // Food interactions
+        tyramine: ['tyramine', 'aged cheese', 'cured meat', 'soy sauce', 'pickled foods'],
+        dairy: ['dairy', 'milk', 'cheese', 'yogurt'],
+        caffeine: ['caffeine', 'coffee', 'tea', 'energy drink']
       };
 
       const normalizeInteraction = (s) => String(s || '').toLowerCase().trim();
@@ -4777,6 +5153,11 @@
         if (INTERACTION_LISTS.ginkgo.some(x => n.includes(x))) tags.add('ginkgo');
         if (INTERACTION_LISTS.fishOil.some(x => n.includes(x))) tags.add('fish_oil');
         if (INTERACTION_LISTS.vitaminK.some(x => n.includes(x))) tags.add('vitamin_k');
+        
+        // Food interactions
+        if (INTERACTION_LISTS.tyramine.some(x => n.includes(x))) tags.add('tyramine_food');
+        if (INTERACTION_LISTS.dairy.some(x => n.includes(x))) tags.add('dairy');
+        if (INTERACTION_LISTS.caffeine.some(x => n.includes(x))) tags.add('caffeine');
 
         return tags;
       }
@@ -6377,6 +6758,11 @@
       const costPerRefill = parseFloat(document.getElementById('costPerRefill').value) || null;
       const insuranceCopay = parseFloat(document.getElementById('insuranceCopay').value) || null;
       const pharmacyName = document.getElementById('pharmacyName').value.trim() || null;
+      
+      // Get prescription renewal data
+      const prescriptionExpiry = document.getElementById('prescriptionExpiry').value || null;
+      const pharmacyPhone = document.getElementById('pharmacyPhone').value.trim() || null;
+      const renewalAlertDays = parseInt(document.getElementById('renewalAlertDays').value) || null;
 
       const newMed = {
         id: Date.now(),
@@ -6393,6 +6779,9 @@
         costPerRefill: costPerRefill,
         insuranceCopay: insuranceCopay,
         pharmacyName: pharmacyName,
+        prescriptionExpiry: prescriptionExpiry,
+        pharmacyPhone: pharmacyPhone,
+        renewalAlertDays: renewalAlertDays,
         dateAdded: new Date().toISOString()
       };
 
@@ -6464,6 +6853,11 @@
       document.getElementById('costPerRefill').value = '';
       document.getElementById('insuranceCopay').value = '';
       document.getElementById('pharmacyName').value = '';
+      
+      // Clear prescription renewal fields
+      document.getElementById('prescriptionExpiry').value = '';
+      document.getElementById('pharmacyPhone').value = '';
+      document.getElementById('renewalAlertDays').value = '';
 
       // Clear pregnancy fields
       if (document.getElementById('isPregnant').checked) {
@@ -8009,6 +8403,12 @@
       if (tabName === 'interactions') {
         console.log('🔄 Interactions tab opened, checking for drug interactions...');
         checkInteractions(false); // FALSE = not silent, show UI
+      }
+      
+      // Load adherence insights when switching to adherence tab
+      if (tabName === 'adherence') {
+        console.log('📊 Adherence tab opened, loading analytics...');
+        loadAdherenceInsights();
       }
     };
     
