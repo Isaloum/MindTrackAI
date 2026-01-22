@@ -1754,22 +1754,22 @@
         </div>
         
         <!-- Reminder & Refill Tracking Row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-          <div class="form-group">
-            <label style="display:flex;align-items:center;gap:0.5rem">
-              <input type="checkbox" id="enableReminder" onchange="toggleReminderTime()" style="width:18px;height:18px;cursor:pointer">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);align-items:start">
+          <div class="form-group" style="margin:0">
+            <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+              <input type="checkbox" id="enableReminder" onchange="toggleReminderTime()" style="width:18px;height:18px;cursor:pointer;margin:0">
               <span>🔔 Reminder</span>
             </label>
-            <input type="time" id="reminderTime" disabled style="width:100%;margin-top:0.5rem" placeholder="Set time">
+            <input type="time" id="reminderTime" disabled style="width:100%" placeholder="Set time">
             <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem">Get notified when it's time to take</div>
           </div>
-          <div class="form-group">
-            <label>💊 Pills Remaining (Optional)</label>
+          <div class="form-group" style="margin:0">
+            <label style="margin-bottom:0.5rem;display:block">💊 Pills Remaining (Optional)</label>
             <input type="number" id="pillsRemaining" min="0" placeholder="e.g., 30" style="width:100%">
             <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem">Track when to refill prescription</div>
           </div>
-          <div class="form-group">
-            <label>📅 Days Supply (Optional)</label>
+          <div class="form-group" style="margin:0">
+            <label style="margin-bottom:0.5rem;display:block">📅 Days Supply (Optional)</label>
             <input type="number" id="daysSupply" min="1" placeholder="e.g., 30" style="width:100%">
             <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem">How many days this prescription lasts</div>
           </div>
