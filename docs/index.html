@@ -3453,29 +3453,31 @@
         return;
       }
       
-      resultsDiv.innerHTML = '<div style="color:var(--text-secondary)">🔍 Searching pill database...</div>';
+      resultsDiv.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--primary);font-weight:600">🔍 Searching pill database...</div>';
       
-      // Common pill database (simplified version)
-      const pillDatabase = [
-        { name: 'Aspirin 325mg', shape: 'round', color: 'white', imprint: 'BAYER', type: 'OTC' },
-        { name: 'Ibuprofen 200mg', shape: 'round', color: 'orange', imprint: 'I-2', type: 'OTC' },
-        { name: 'Acetaminophen 500mg', shape: 'capsule', color: 'red', imprint: 'TYLENOL', type: 'OTC' },
-        { name: 'Lisinopril 10mg', shape: 'round', color: 'pink', imprint: 'E101', type: 'Rx' },
-        { name: 'Metformin 500mg', shape: 'round', color: 'white', imprint: 'M500', type: 'Rx' },
-        { name: 'Atorvastatin 20mg', shape: 'oval', color: 'white', imprint: 'PD155', type: 'Rx' },
-        { name: 'Omeprazole 20mg', shape: 'capsule', color: 'purple', imprint: 'A 20', type: 'Rx' },
-        { name: 'Amlodipine 5mg', shape: 'round', color: 'white', imprint: 'AMN5', type: 'Rx' },
-        { name: 'Vitamin D3 1000 IU', shape: 'oval', color: 'yellow', imprint: 'D3', type: 'Supplement' }
-      ];
-      
-      // Filter pills based on criteria
-      let matches = pillDatabase.filter(pill => {
-        let match = true;
-        if (shape && pill.shape !== shape) match = false;
-        if (color && pill.color !== color) match = false;
-        if (imprint && !pill.imprint.includes(imprint)) match = false;
-        return match;
-      });
+      // Use setTimeout to allow UI to update before processing
+      setTimeout(() => {
+        // Common pill database (simplified version)
+        const pillDatabase = [
+          { name: 'Aspirin 325mg', shape: 'round', color: 'white', imprint: 'BAYER', type: 'OTC' },
+          { name: 'Ibuprofen 200mg', shape: 'round', color: 'orange', imprint: 'I-2', type: 'OTC' },
+          { name: 'Acetaminophen 500mg', shape: 'capsule', color: 'red', imprint: 'TYLENOL', type: 'OTC' },
+          { name: 'Lisinopril 10mg', shape: 'round', color: 'pink', imprint: 'E101', type: 'Rx' },
+          { name: 'Metformin 500mg', shape: 'round', color: 'white', imprint: 'M500', type: 'Rx' },
+          { name: 'Atorvastatin 20mg', shape: 'oval', color: 'white', imprint: 'PD155', type: 'Rx' },
+          { name: 'Omeprazole 20mg', shape: 'capsule', color: 'purple', imprint: 'A 20', type: 'Rx' },
+          { name: 'Amlodipine 5mg', shape: 'round', color: 'white', imprint: 'AMN5', type: 'Rx' },
+          { name: 'Vitamin D3 1000 IU', shape: 'oval', color: 'yellow', imprint: 'D3', type: 'Supplement' }
+        ];
+        
+        // Filter pills based on criteria
+        let matches = pillDatabase.filter(pill => {
+          let match = true;
+          if (shape && pill.shape !== shape) match = false;
+          if (color && pill.color !== color) match = false;
+          if (imprint && !pill.imprint.includes(imprint)) match = false;
+          return match;
+        });
       
       if (matches.length === 0) {
         resultsDiv.innerHTML = `
@@ -3519,6 +3521,7 @@
         
         resultsDiv.innerHTML = html;
       }
+      }, 500); // 500ms delay for UI feedback
     }
     
     // ============================================
