@@ -130,6 +130,7 @@
       background:transparent;
       color:var(--text-secondary);
       border:none;
+      outline:none;
       border-radius:0;
       padding:0.5rem 0;
       cursor:pointer;
@@ -142,16 +143,25 @@
       white-space:nowrap;
       line-height:1;
       position:relative;
+      box-shadow:none;
     }
     .nav-tab .icon{
       display:none;
     }
     .nav-tab:hover{
       color:var(--text);
+      border:none;
+      outline:none;
+    }
+    .nav-tab:focus{
+      outline:none;
+      border:none;
     }
     .nav-tab.active{
       color:var(--primary);
       font-weight:800;
+      border:none;
+      outline:none;
     }
     .nav-tab.active::after{
       content:"";
