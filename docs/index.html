@@ -2255,9 +2255,13 @@
     // ============================================
     function showOnboarding() {
       const hasSeenOnboarding = DB.getOne('hasSeenOnboarding');
+      console.log('🔍 Onboarding check - hasSeenOnboarding:', hasSeenOnboarding, typeof hasSeenOnboarding);
       if (hasSeenOnboarding !== true) {
+        console.log('✅ Showing onboarding overlay');
         document.getElementById('onboardingOverlay').style.display = 'flex';
         document.getElementById('userName').focus();
+      } else {
+        console.log('❌ Skipping onboarding - user has already seen it');
       }
     }
 
