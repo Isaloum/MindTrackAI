@@ -2251,6 +2251,54 @@
     }
 
     // ============================================
+    // EMERGENCY CONTACT SYSTEM
+    // ============================================
+    const EMERGENCY_NUMBERS = {
+      CA: {
+        poisonControl: '1-844-764-7669',
+        mentalHealth: '9-8-8',
+        emergency: '9-1-1'
+      },
+      US: {
+        poisonControl: '1-800-222-1222',
+        mentalHealth: '9-8-8',
+        emergency: '9-1-1'
+      }
+    };
+
+    function getUserCountry() {
+      return DB.getOne('userCountry') || 'CA'; // Default to Canada
+    }
+
+    function setUserCountry(country) {
+      DB.setOne('userCountry', country);
+    }
+
+    function getEmergencyNumbers() {
+      const country = getUserCountry();
+      return EMERGENCY_NUMBERS[country] || EMERGENCY_NUMBERS.CA;
+    }
+
+    function handleCountryChange(event) {
+      const newCountry = event.target.value;
+      setUserCountry(newCountry);
+      updateEmergencyNumbers();
+    }
+
+    function updateEmergencyNumbers() {
+      const numbers = getEmergencyNumbers();
+      document.querySelectorAll('[data-emergency-number="poisonControl"]').forEach(el => {
+        el.textContent = numbers.poisonControl;
+      });
+      document.querySelectorAll('[data-emergency-number="mentalHealth"]').forEach(el => {
+        el.textContent = numbers.mentalHealth;
+      });
+      document.querySelectorAll('[data-emergency-number="emergency"]').forEach(el => {
+        el.textContent = numbers.emergency;
+      });
+    }
+
+    // ============================================
     // ONBOARDING SYSTEM
     // ============================================
     function showOnboarding() {
