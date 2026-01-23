@@ -139,7 +139,6 @@
       display:inline-flex;
       align-items:center;
       gap:0.5rem;
-      transition:var(--transition);
       white-space:nowrap;
       line-height:1;
       position:relative;
@@ -162,16 +161,6 @@
       font-weight:800;
       border:none;
       outline:none;
-    }
-    .nav-tab.active::after{
-      content:"";
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:-0.65rem;
-      height:2px;
-      background:var(--primary);
-      border-radius:2px;
     }
     .grid-col-12{grid-column:span 12}
     .grid-col-8{grid-column:span 8}
@@ -2266,7 +2255,7 @@
     // ============================================
     function showOnboarding() {
       const hasSeenOnboarding = DB.getOne('hasSeenOnboarding');
-      if (!hasSeenOnboarding) {
+      if (hasSeenOnboarding !== true) {
         document.getElementById('onboardingOverlay').style.display = 'flex';
         document.getElementById('userName').focus();
       }
