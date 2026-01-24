@@ -127,10 +127,12 @@
     .nav-tabs::-webkit-scrollbar{display:none}
     .nav-tab{
       appearance:none;
+      -webkit-appearance:none;
+      -moz-appearance:none;
       background:transparent;
       color:var(--text-secondary);
-      border:none;
-      outline:none;
+      border:none !important;
+      outline:none !important;
       border-radius:0;
       padding:0.5rem 0;
       cursor:pointer;
@@ -142,25 +144,42 @@
       white-space:nowrap;
       line-height:1;
       position:relative;
-      box-shadow:none;
+      box-shadow:none !important;
+      text-decoration:none;
+      border-left:0 !important;
+      border-right:0 !important;
+      border-top:0 !important;
+      border-bottom:0 !important;
+    }
+    .nav-tab::before,
+    .nav-tab::after{
+      display:none !important;
     }
     .nav-tab .icon{
       display:none;
     }
     .nav-tab:hover{
       color:var(--text);
-      border:none;
-      outline:none;
+      border:none !important;
+      outline:none !important;
+      box-shadow:none !important;
     }
     .nav-tab:focus{
-      outline:none;
-      border:none;
+      outline:none !important;
+      border:none !important;
+      box-shadow:none !important;
+    }
+    .nav-tab:focus-visible{
+      outline:2px solid var(--primary);
+      outline-offset:2px;
+      border:none !important;
     }
     .nav-tab.active{
       color:var(--primary);
       font-weight:800;
-      border:none;
-      outline:none;
+      border:none !important;
+      outline:none !important;
+      box-shadow:none !important;
     }
     .grid-col-12{grid-column:span 12}
     .grid-col-8{grid-column:span 8}
@@ -1970,6 +1989,9 @@
           <button class="med-tab" onclick="switchMedicationTab('supplements')" data-tab="supplements">
             🌿 Supplements
           </button>
+          <button class="med-tab" onclick="switchMedicationTab('prescription')" data-tab="prescription">
+            💊 Prescription Details
+          </button>
           <button class="med-tab" onclick="switchMedicationTab('history')" data-tab="history">
             📊 History
           </button>
@@ -1994,6 +2016,125 @@
 
         <div class="med-tab-content" id="tab-supplements">
           <div class="med-grid" id="supplementList"></div>
+        </div>
+
+        <div class="med-tab-content" id="tab-prescription">
+          <div style="margin-bottom:1rem;padding:0.875rem;background:var(--bg-subtle);border-radius:var(--radius);border-left:3px solid var(--primary)">
+            <div style="font-weight:600;margin-bottom:0.375rem">💊 Prescription Management</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary)">Track prescription details, refill reminders, and pharmacy information.</div>
+          </div>
+          
+          <div id="prescriptionDetails">
+            <div class="card" style="margin-bottom:1rem">
+              <div style="display:grid;gap:1.5rem">
+                
+                <!-- Reminder Time -->
+                <div>
+                  <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                    <span>🔔 Reminder</span>
+                  </label>
+                  <input type="time" id="prescriptionReminder" class="input" value="08:00" style="width:100%;max-width:200px">
+                  <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">Get notified when it's time to take</div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+                  <!-- Pills Remaining -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>💊 Pills Remaining (Optional)</span>
+                    </label>
+                    <input type="number" id="pillsRemaining" class="input" placeholder="e.g., 30" min="0">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">Track when to refill prescription</div>
+                  </div>
+
+                  <!-- Days Supply -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>📅 Days Supply (Optional)</span>
+                    </label>
+                    <input type="number" id="daysSupply" class="input" placeholder="e.g., 30" min="0">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">How many days this prescription lasts</div>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+                  <!-- Cost per Refill -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>💰 Cost per Refill (Optional)</span>
+                    </label>
+                    <input type="number" id="costPerRefill" class="input" placeholder="e.g., 25.00" min="0" step="0.01">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">Track medication expenses</div>
+                  </div>
+
+                  <!-- Insurance Copay -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>💳 Insurance Copay (Optional)</span>
+                    </label>
+                    <input type="number" id="insuranceCopay" class="input" placeholder="e.g., 10.00" min="0" step="0.01">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">Your copay amount</div>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+                  <!-- Pharmacy Name -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>🏪 Pharmacy Name (Optional)</span>
+                    </label>
+                    <input type="text" id="pharmacyName" class="input" placeholder="e.g., CVS Pharmacy">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">Where you get this prescription</div>
+                  </div>
+
+                  <!-- Pharmacy Phone -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>📞 Pharmacy Phone (Optional)</span>
+                    </label>
+                    <input type="tel" id="pharmacyPhone" class="input" placeholder="e.g., (555) 123-4567">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">For quick refill calls</div>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
+                  <!-- Prescription Expiry -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>📆 Prescription Expiry (Optional)</span>
+                    </label>
+                    <input type="date" id="prescriptionExpiry" class="input">
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">When prescription expires</div>
+                  </div>
+
+                  <!-- Renewal Alert -->
+                  <div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
+                      <span>🔔 Renewal Alert (Optional)</span>
+                    </label>
+                    <select id="renewalAlert" class="input">
+                      <option value="">No alert</option>
+                      <option value="7">7 days before expiry</option>
+                      <option value="14">14 days before expiry</option>
+                      <option value="30">30 days before expiry</option>
+                    </select>
+                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.375rem">Get reminded to renew</div>
+                  </div>
+                </div>
+
+                <!-- Save Button -->
+                <div style="margin-top:0.5rem">
+                  <button class="btn btn-primary" onclick="savePrescriptionDetails()" style="width:100%;max-width:300px">
+                    💾 Save Prescription Details
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Saved Prescriptions List -->
+            <div id="savedPrescriptionsList"></div>
+          </div>
         </div>
 
         <div class="med-tab-content" id="tab-history">
@@ -7410,12 +7551,16 @@
         loadMedications();
       } else if (tabName === 'supplements') {
         loadSupplements();
+      } else if (tabName === 'prescription') {
+        loadPrescriptionDetails();
       } else if (tabName === 'history') {
         loadMedicationHistory();
       } else if (tabName === 'effectiveness') {
         loadEffectiveness();
       } else if (tabName === 'side-effects') {
         loadSideEffects();
+      } else if (tabName === 'adherence') {
+        loadAdherenceInsights();
       } else if (tabName === 'interactions') {
         scheduleInteractionRecheck('tab-switch');
       }
@@ -7606,7 +7751,7 @@
     }
     
     // Delete a side effect entry
-    function deleteSideEffect(id) {
+    window.deleteSideEffect = function(id) {
       if (!confirm('Delete this side effect log?')) return;
       const sideEffects = DB.get('sideEffects') || [];
       const filtered = sideEffects.filter(se => se.id !== id);
@@ -8717,6 +8862,177 @@
     console.log('✓ Medication search initialization complete');
     console.log('✓ Click-outside handler registered');
     console.log('✓ searchMedication function:', typeof window.searchMedication);
+
+    // ========================================
+    // PRESCRIPTION DETAILS FUNCTIONS
+    // ========================================
+
+    function savePrescriptionDetails() {
+      const prescriptionData = {
+        id: Date.now(),
+        reminder: document.getElementById('prescriptionReminder').value,
+        pillsRemaining: document.getElementById('pillsRemaining').value,
+        daysSupply: document.getElementById('daysSupply').value,
+        costPerRefill: document.getElementById('costPerRefill').value,
+        insuranceCopay: document.getElementById('insuranceCopay').value,
+        pharmacyName: document.getElementById('pharmacyName').value,
+        pharmacyPhone: document.getElementById('pharmacyPhone').value,
+        prescriptionExpiry: document.getElementById('prescriptionExpiry').value,
+        renewalAlert: document.getElementById('renewalAlert').value,
+        createdAt: new Date().toISOString()
+      };
+
+      // Get existing prescriptions
+      let prescriptions = DB.get('prescriptionDetails') || [];
+      
+      // Add new prescription
+      prescriptions.push(prescriptionData);
+      
+      // Save to database
+      DB.set('prescriptionDetails', prescriptions);
+
+      // Clear form
+      document.getElementById('prescriptionReminder').value = '08:00';
+      document.getElementById('pillsRemaining').value = '';
+      document.getElementById('daysSupply').value = '';
+      document.getElementById('costPerRefill').value = '';
+      document.getElementById('insuranceCopay').value = '';
+      document.getElementById('pharmacyName').value = '';
+      document.getElementById('pharmacyPhone').value = '';
+      document.getElementById('prescriptionExpiry').value = '';
+      document.getElementById('renewalAlert').value = '';
+
+      // Reload the list
+      loadPrescriptionDetails();
+      
+      // Show success message
+      showToast('✅ Prescription details saved successfully!');
+    }
+
+    function loadPrescriptionDetails() {
+      const container = document.getElementById('savedPrescriptionsList');
+      if (!container) return;
+
+      const prescriptions = DB.get('prescriptionDetails') || [];
+
+      if (prescriptions.length === 0) {
+        container.innerHTML = '<div class="insight">No prescription details saved yet. Fill out the form above to track your prescriptions.</div>';
+        return;
+      }
+
+      let html = '<div style="display:flex;flex-direction:column;gap:1rem;margin-top:1.5rem">';
+      html += '<div style="font-weight:600;font-size:1.125rem;margin-bottom:0.5rem">📋 Saved Prescriptions</div>';
+
+      prescriptions.forEach((prescription, index) => {
+        const expiryDate = prescription.prescriptionExpiry ? new Date(prescription.prescriptionExpiry) : null;
+        const daysUntilExpiry = expiryDate ? Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
+        const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
+        const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0;
+
+        html += `
+          <div class="card" style="padding:1rem;${isExpiringSoon ? 'border-left:3px solid var(--warning);' : isExpired ? 'border-left:3px solid var(--danger);' : ''}">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+              <div style="flex:1">
+                ${prescription.reminder ? `<div style="font-weight:600;margin-bottom:0.5rem">🕐 Reminder: ${prescription.reminder}</div>` : ''}
+              </div>
+              <button onclick="deletePrescriptionDetail(${prescription.id})" class="btn" style="background:var(--danger);color:white;padding:0.5rem 1rem;font-size:0.875rem">
+                🗑️ Delete
+              </button>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;font-size:0.875rem">
+              ${prescription.pillsRemaining ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">💊 Pills Remaining</div>
+                  <div style="font-weight:600">${prescription.pillsRemaining}</div>
+                </div>
+              ` : ''}
+              ${prescription.daysSupply ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">📅 Days Supply</div>
+                  <div style="font-weight:600">${prescription.daysSupply} days</div>
+                </div>
+              ` : ''}
+              ${prescription.costPerRefill ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">💰 Cost per Refill</div>
+                  <div style="font-weight:600">$${parseFloat(prescription.costPerRefill).toFixed(2)}</div>
+                </div>
+              ` : ''}
+              ${prescription.insuranceCopay ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">💳 Insurance Copay</div>
+                  <div style="font-weight:600">$${parseFloat(prescription.insuranceCopay).toFixed(2)}</div>
+                </div>
+              ` : ''}
+              ${prescription.pharmacyName ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">🏪 Pharmacy</div>
+                  <div style="font-weight:600">${prescription.pharmacyName}</div>
+                </div>
+              ` : ''}
+              ${prescription.pharmacyPhone ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">📞 Phone</div>
+                  <div style="font-weight:600">${prescription.pharmacyPhone}</div>
+                </div>
+              ` : ''}
+              ${prescription.prescriptionExpiry ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">📆 Expiry Date</div>
+                  <div style="font-weight:600;${isExpiringSoon ? 'color:var(--warning)' : isExpired ? 'color:var(--danger)' : ''}">
+                    ${new Date(prescription.prescriptionExpiry).toLocaleDateString()}
+                    ${isExpiringSoon ? `<span style="margin-left:0.5rem;font-size:0.75rem">(${daysUntilExpiry} days left)</span>` : ''}
+                    ${isExpired ? '<span style="margin-left:0.5rem;font-size:0.75rem">(Expired)</span>' : ''}
+                  </div>
+                </div>
+              ` : ''}
+              ${prescription.renewalAlert && prescription.renewalAlert !== '' ? `
+                <div>
+                  <div style="color:var(--text-muted);font-size:0.75rem">🔔 Renewal Alert</div>
+                  <div style="font-weight:600">${prescription.renewalAlert} days before</div>
+                </div>
+              ` : ''}
+            </div>
+            
+            ${isExpiringSoon ? `
+              <div style="margin-top:1rem;padding:0.75rem;background:rgba(245,158,11,0.1);border-radius:var(--radius);border-left:3px solid var(--warning)">
+                <strong>⚠️ Expiring Soon:</strong> This prescription expires in ${daysUntilExpiry} days. Consider contacting your pharmacy for a refill.
+              </div>
+            ` : ''}
+            ${isExpired ? `
+              <div style="margin-top:1rem;padding:0.75rem;background:rgba(239,68,68,0.1);border-radius:var(--radius);border-left:3px solid var(--danger)">
+                <strong>🚫 Expired:</strong> This prescription has expired. Please contact your doctor for a new prescription.
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function deletePrescriptionDetail(id) {
+      if (!confirm('Are you sure you want to delete this prescription detail?')) {
+        return;
+      }
+
+      let prescriptions = DB.get('prescriptionDetails') || [];
+      prescriptions = prescriptions.filter(p => p.id !== id);
+      DB.set('prescriptionDetails', prescriptions);
+      
+      loadPrescriptionDetails();
+      showToast('✅ Prescription detail deleted successfully');
+    }
+
+    // Load prescription details when the page loads
+    window.addEventListener('load', () => {
+      if (document.getElementById('savedPrescriptionsList')) {
+        loadPrescriptionDetails();
+      }
+    });
+
   </script>
 </body>
 </html>
