@@ -2208,21 +2208,10 @@
           <label>Title (optional)</label>
           <input type="text" id="journalTitle" placeholder="e.g., A Productive Day">
         </div>
-        
-        <div class="form-group">
-          <label>How are you feeling?</label>
-          <div class="btn-group" role="group">
-            <button class="btn btn-secondary journal-mood-btn" data-mood="great">😊 Great</button>
-            <button class="btn btn-secondary journal-mood-btn" data-mood="good">🙂 Good</button>
-            <button class="btn btn-secondary journal-mood-btn" data-mood="okay">😐 Okay</button>
-            <button class="btn btn-secondary journal-mood-btn" data-mood="bad">😞 Bad</button>
-            <button class="btn btn-secondary journal-mood-btn" data-mood="terrible">😢 Terrible</button>
-          </div>
-        </div>
 
         <div class="form-group">
           <label>Journal Entry</label>
-          <textarea id="journalEntry" rows="8" placeholder="Write about your day, thoughts, feelings, or anything on your mind..."></textarea>
+          <textarea id="journalEntry" rows="10" placeholder="Write about your day, thoughts, feelings, or anything on your mind..."></textarea>
           <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.375rem" id="wordCount">0 words</div>
         </div>
 
@@ -2252,15 +2241,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
           <div class="card-title" style="margin:0">📅 Journal Entries</div>
           <div style="display:flex;gap:0.5rem;align-items:center">
-            <input type="text" id="journalSearchInput" placeholder="🔍 Search entries..." style="padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.875rem;min-width:200px" oninput="filterJournalEntries()">
-            <select id="journalFilterMood" onchange="filterJournalEntries()" style="padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.875rem">
-              <option value="">All Moods</option>
-              <option value="great">😊 Great</option>
-              <option value="good">🙂 Good</option>
-              <option value="okay">😐 Okay</option>
-              <option value="bad">😞 Bad</option>
-              <option value="terrible">😢 Terrible</option>
-            </select>
+            <input type="text" id="journalSearchInput" placeholder="🔍 Search entries..." style="padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.875rem;min-width:250px" oninput="filterJournalEntries()">
           </div>
         </div>
         <div class="data-list" id="journalHistory"></div>
@@ -8380,14 +8361,6 @@
         });
       }
 
-      // Mood button selection for journal
-      document.querySelectorAll('.journal-mood-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          document.querySelectorAll('.journal-mood-btn').forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-        });
-      });
-
       setDailyPrompt();
     });
 
@@ -8396,8 +8369,6 @@
       const entry = document.getElementById('journalEntry').value.trim();
       const tags = document.getElementById('journalTags').value.trim();
       const isPrivate = document.getElementById('journalPrivate').checked;
-      const selectedMoodBtn = document.querySelector('.journal-mood-btn.active');
-      const mood = selectedMoodBtn ? selectedMoodBtn.dataset.mood : '';
 
       if (!entry) {
         return alert('Please write something in your journal entry!');
@@ -8408,7 +8379,6 @@
         date: new Date().toISOString(),
         title: title || 'Untitled Entry',
         entry: entry,
-        mood: mood,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [],
         isPrivate: isPrivate,
         wordCount: entry.split(/\s+/).length
@@ -8424,7 +8394,6 @@
       document.getElementById('journalTags').value = '';
       document.getElementById('journalPrivate').checked = false;
       document.getElementById('wordCount').textContent = '0 words';
-      document.querySelectorAll('.journal-mood-btn').forEach(b => b.classList.remove('active'));
 
       alert('📝 Journal entry saved!');
       loadJournalEntries();
@@ -8442,14 +8411,6 @@
         return;
       }
 
-      const moodEmojis = {
-        'great': '😊',
-        'good': '🙂',
-        'okay': '😐',
-        'bad': '😞',
-        'terrible': '😢'
-      };
-
       container.innerHTML = journals.map(j => {
         const date = new Date(j.date);
         const preview = j.entry.length > 150 ? j.entry.substring(0, 150) + '...' : j.entry;
@@ -8463,7 +8424,7 @@
           <div class="data-item">
             <div class="data-item-info" style="width:100%">
               <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.5rem">
-                <div class="data-item-title">${j.mood ? moodEmojis[j.mood] + ' ' : ''}${j.title}${j.isPrivate ? ' 🔒' : ''}</div>
+                <div class="data-item-title">${j.title}${j.isPrivate ? ' 🔒' : ''}</div>
                 <div class="data-item-meta">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
               </div>
               <div style="color:var(--text-secondary);font-size:0.875rem;line-height:1.5;margin-bottom:0.5rem">${preview}</div>
@@ -8530,7 +8491,6 @@
 
     function filterJournalEntries() {
       const searchTerm = document.getElementById('journalSearchInput').value.toLowerCase();
-      const filterMood = document.getElementById('journalFilterMood').value;
       const journals = DB.get('journals');
 
       const filtered = journals.filter(j => {
@@ -8538,10 +8498,8 @@
           j.title.toLowerCase().includes(searchTerm) ||
           j.entry.toLowerCase().includes(searchTerm) ||
           (j.tags && j.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
-        
-        const matchesMood = !filterMood || j.mood === filterMood;
 
-        return matchesSearch && matchesMood;
+        return matchesSearch;
       });
 
       const container = document.getElementById('journalHistory');
@@ -8549,14 +8507,6 @@
         container.innerHTML = '<div class="insight">No entries match your search.</div>';
         return;
       }
-
-      const moodEmojis = {
-        'great': '😊',
-        'good': '🙂',
-        'okay': '😐',
-        'bad': '😞',
-        'terrible': '😢'
-      };
 
       container.innerHTML = filtered.map(j => {
         const date = new Date(j.date);
@@ -8599,14 +8549,6 @@
       const entry = journals.find(j => j.id === id);
       if (!entry) return;
 
-      const moodEmojis = {
-        'great': '😊 Great',
-        'good': '🙂 Good',
-        'okay': '😐 Okay',
-        'bad': '😞 Bad',
-        'terrible': '😢 Terrible'
-      };
-
       const date = new Date(entry.date);
       const tagsHtml = entry.tags && entry.tags.length > 0 
         ? `<div style="margin-top:1rem"><strong>Tags:</strong> ${entry.tags.map(tag => 
@@ -8620,7 +8562,6 @@
             <h3 style="margin:0">${entry.title}${entry.isPrivate ? ' 🔒' : ''}</h3>
             <div style="font-size:0.875rem;color:var(--text-muted)">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
           </div>
-          ${entry.mood ? `<div style="margin-bottom:1rem;font-weight:600">${moodEmojis[entry.mood]}</div>` : ''}
           <div style="white-space:pre-wrap;line-height:1.6;color:var(--text-secondary)">${entry.entry}</div>
           <div style="margin-top:1rem;font-size:0.875rem;color:var(--text-muted)">${entry.wordCount} words</div>
           ${tagsHtml}
@@ -8642,17 +8583,6 @@
       document.getElementById('journalEntry').value = entry.entry;
       document.getElementById('journalTags').value = entry.tags ? entry.tags.join(', ') : '';
       document.getElementById('journalPrivate').checked = entry.isPrivate || false;
-      
-      // Set mood button
-      if (entry.mood) {
-        document.querySelectorAll('.journal-mood-btn').forEach(btn => {
-          if (btn.dataset.mood === entry.mood) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
-        });
-      }
 
       // Update word count
       const words = entry.entry.split(/\s+/).length;
