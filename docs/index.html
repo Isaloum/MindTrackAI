@@ -1490,6 +1490,7 @@
           <button class="nav-tab" data-tab="medication" aria-label="Medication Tracker"><span class="icon" aria-hidden="true">💊</span><span>Medication</span></button>
           <button class="nav-tab" data-tab="sleep" aria-label="Sleep Tracker"><span class="icon" aria-hidden="true">😴</span><span>Sleep</span></button>
           <button class="nav-tab" data-tab="exercise" aria-label="Exercise Tracker"><span class="icon" aria-hidden="true">🏃</span><span>Exercise</span></button>
+          <button class="nav-tab" data-tab="journal" aria-label="Journal"><span class="icon" aria-hidden="true">📝</span><span>Journal</span></button>
         </nav>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark/light mode" title="Toggle theme">
           <span id="themeIcon" aria-hidden="true">🌙</span>
@@ -2192,6 +2193,80 @@
       </div>
     </section>
 
+    <!-- Journal -->
+    <section id="journal" class="app-section">
+      <div class="card">
+        <div class="card-title">📝 Daily Journal</div>
+        
+        <!-- Daily Prompt (Optional) -->
+        <div style="background:var(--bg-subtle);padding:1rem;border-radius:var(--radius);margin-bottom:1rem;border-left:3px solid var(--primary)">
+          <div style="font-weight:600;margin-bottom:0.375rem">💭 Today's Prompt (Optional)</div>
+          <div style="font-size:0.875rem;color:var(--text-secondary)" id="dailyPrompt">What are you grateful for today?</div>
+        </div>
+
+        <div class="form-group">
+          <label>Title (optional)</label>
+          <input type="text" id="journalTitle" placeholder="e.g., A Productive Day">
+        </div>
+        
+        <div class="form-group">
+          <label>How are you feeling?</label>
+          <div class="btn-group" role="group">
+            <button class="btn btn-secondary journal-mood-btn" data-mood="great">😊 Great</button>
+            <button class="btn btn-secondary journal-mood-btn" data-mood="good">🙂 Good</button>
+            <button class="btn btn-secondary journal-mood-btn" data-mood="okay">😐 Okay</button>
+            <button class="btn btn-secondary journal-mood-btn" data-mood="bad">😞 Bad</button>
+            <button class="btn btn-secondary journal-mood-btn" data-mood="terrible">😢 Terrible</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Journal Entry</label>
+          <textarea id="journalEntry" rows="8" placeholder="Write about your day, thoughts, feelings, or anything on your mind..."></textarea>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.375rem" id="wordCount">0 words</div>
+        </div>
+
+        <div class="form-group">
+          <label>Tags (optional)</label>
+          <input type="text" id="journalTags" placeholder="e.g., work, family, health (comma-separated)">
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.375rem">Add tags to organize and search your entries</div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;align-items:center">
+          <button class="btn btn-primary" onclick="saveJournalEntry()">💾 Save Entry</button>
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;margin:0">
+            <input type="checkbox" id="journalPrivate" style="width:18px;height:18px;cursor:pointer">
+            <span style="font-size:0.875rem;color:var(--text-secondary)">🔒 Mark as private</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="totalEntries">0</div><div class="stat-label">Total Entries</div></div>
+        <div class="stat-card"><div class="stat-value" id="journalStreak">0</div><div class="stat-label">Day Streak</div></div>
+        <div class="stat-card"><div class="stat-value" id="thisMonthEntries">0</div><div class="stat-label">This Month</div></div>
+        <div class="stat-card"><div class="stat-value" id="avgWordsPerEntry">0</div><div class="stat-label">Avg Words</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
+          <div class="card-title" style="margin:0">📅 Journal Entries</div>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <input type="text" id="journalSearchInput" placeholder="🔍 Search entries..." style="padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.875rem;min-width:200px" oninput="filterJournalEntries()">
+            <select id="journalFilterMood" onchange="filterJournalEntries()" style="padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.875rem">
+              <option value="">All Moods</option>
+              <option value="great">😊 Great</option>
+              <option value="good">🙂 Good</option>
+              <option value="okay">😐 Okay</option>
+              <option value="bad">😞 Bad</option>
+              <option value="terrible">😢 Terrible</option>
+            </select>
+          </div>
+        </div>
+        <div class="data-list" id="journalHistory"></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Install PWA Button -->
@@ -2220,6 +2295,10 @@
     <button class="mobile-nav-btn" data-tab="exercise" aria-label="Exercise">
       <span class="icon" aria-hidden="true">🏃</span>
       <span class="label">Exercise</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="journal" aria-label="Journal">
+      <span class="icon" aria-hidden="true">📝</span>
+      <span class="label">Journal</span>
     </button>
   </nav>
 
@@ -8257,6 +8336,354 @@
       `).join('');
     }
 
+    // ============================================
+    // JOURNAL FUNCTIONALITY
+    // ============================================
+    
+    // Daily journal prompts
+    const journalPrompts = [
+      "What are you grateful for today?",
+      "What made you smile today?",
+      "What's one thing you learned today?",
+      "Describe a challenge you faced and how you handled it.",
+      "What are you looking forward to tomorrow?",
+      "What's on your mind right now?",
+      "What's one thing you'd like to improve about yourself?",
+      "Write about a person who made a difference in your life.",
+      "What are your goals for this month?",
+      "How did you take care of yourself today?",
+      "What's something you're proud of recently?",
+      "Describe your perfect day.",
+      "What emotions did you experience today?",
+      "What would you tell your younger self?",
+      "What brings you peace and calm?"
+    ];
+
+    // Set random daily prompt
+    function setDailyPrompt() {
+      const promptEl = document.getElementById('dailyPrompt');
+      if (!promptEl) return;
+      const promptIndex = new Date().getDate() % journalPrompts.length;
+      promptEl.textContent = journalPrompts[promptIndex];
+    }
+
+    // Word counter for journal entry
+    document.addEventListener('DOMContentLoaded', function() {
+      const journalEntry = document.getElementById('journalEntry');
+      const wordCount = document.getElementById('wordCount');
+      
+      if (journalEntry && wordCount) {
+        journalEntry.addEventListener('input', function() {
+          const text = this.value.trim();
+          const words = text ? text.split(/\s+/).length : 0;
+          wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+        });
+      }
+
+      // Mood button selection for journal
+      document.querySelectorAll('.journal-mood-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.journal-mood-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
+      setDailyPrompt();
+    });
+
+    function saveJournalEntry() {
+      const title = document.getElementById('journalTitle').value.trim();
+      const entry = document.getElementById('journalEntry').value.trim();
+      const tags = document.getElementById('journalTags').value.trim();
+      const isPrivate = document.getElementById('journalPrivate').checked;
+      const selectedMoodBtn = document.querySelector('.journal-mood-btn.active');
+      const mood = selectedMoodBtn ? selectedMoodBtn.dataset.mood : '';
+
+      if (!entry) {
+        return alert('Please write something in your journal entry!');
+      }
+
+      const journalEntry = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        title: title || 'Untitled Entry',
+        entry: entry,
+        mood: mood,
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [],
+        isPrivate: isPrivate,
+        wordCount: entry.split(/\s+/).length
+      };
+
+      const journals = DB.get('journals');
+      journals.unshift(journalEntry);
+      DB.set('journals', journals);
+
+      // Clear form
+      document.getElementById('journalTitle').value = '';
+      document.getElementById('journalEntry').value = '';
+      document.getElementById('journalTags').value = '';
+      document.getElementById('journalPrivate').checked = false;
+      document.getElementById('wordCount').textContent = '0 words';
+      document.querySelectorAll('.journal-mood-btn').forEach(b => b.classList.remove('active'));
+
+      alert('📝 Journal entry saved!');
+      loadJournalEntries();
+      updateJournalStats();
+    }
+
+    function loadJournalEntries() {
+      const journals = DB.get('journals');
+      const container = document.getElementById('journalHistory');
+
+      if (!container) return;
+
+      if (journals.length === 0) {
+        container.innerHTML = '<div class="insight">No journal entries yet. Start writing! ✍️</div>';
+        return;
+      }
+
+      const moodEmojis = {
+        'great': '😊',
+        'good': '🙂',
+        'okay': '😐',
+        'bad': '😞',
+        'terrible': '😢'
+      };
+
+      container.innerHTML = journals.map(j => {
+        const date = new Date(j.date);
+        const preview = j.entry.length > 150 ? j.entry.substring(0, 150) + '...' : j.entry;
+        const tagsHtml = j.tags && j.tags.length > 0 
+          ? `<div style="display:flex;gap:0.25rem;flex-wrap:wrap;margin-top:0.5rem">${j.tags.map(tag => 
+              `<span style="background:var(--primary);color:white;padding:0.125rem 0.5rem;border-radius:var(--radius-full);font-size:0.75rem">${tag}</span>`
+            ).join('')}</div>`
+          : '';
+
+        return `
+          <div class="data-item">
+            <div class="data-item-info" style="width:100%">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.5rem">
+                <div class="data-item-title">${j.mood ? moodEmojis[j.mood] + ' ' : ''}${j.title}${j.isPrivate ? ' 🔒' : ''}</div>
+                <div class="data-item-meta">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              </div>
+              <div style="color:var(--text-secondary);font-size:0.875rem;line-height:1.5;margin-bottom:0.5rem">${preview}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">${j.wordCount} words</div>
+              ${tagsHtml}
+            </div>
+            <div class="entry-actions" style="margin-top:0.5rem">
+              <button class="edit-btn" onclick="viewJournalEntry('${j.id}')" aria-label="View full entry">
+                👁️ View
+              </button>
+              <button class="edit-btn" onclick="editJournalEntry('${j.id}')" aria-label="Edit journal entry">
+                ✏️ Edit
+              </button>
+              <button class="delete-btn" onclick="deleteJournalEntry('${j.id}')" aria-label="Delete journal entry">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateJournalStats() {
+      const journals = DB.get('journals');
+      
+      document.getElementById('totalEntries').textContent = journals.length;
+
+      // Calculate streak
+      let streak = 0;
+      const sortedDates = [...new Set(journals.map(j => new Date(j.date).toDateString()))].sort((a, b) => new Date(b) - new Date(a));
+      const today = new Date().toDateString();
+      
+      if (sortedDates.length > 0 && sortedDates[0] === today) {
+        streak = 1;
+        for (let i = 1; i < sortedDates.length; i++) {
+          const currentDate = new Date(sortedDates[i]);
+          const prevDate = new Date(sortedDates[i - 1]);
+          const diffDays = Math.floor((prevDate - currentDate) / (1000 * 60 * 60 * 24));
+          if (diffDays === 1) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+      }
+      
+      document.getElementById('journalStreak').textContent = streak;
+
+      // This month entries
+      const thisMonth = new Date().getMonth();
+      const thisYear = new Date().getFullYear();
+      const monthEntries = journals.filter(j => {
+        const d = new Date(j.date);
+        return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+      }).length;
+      document.getElementById('thisMonthEntries').textContent = monthEntries;
+
+      // Average words per entry
+      const avgWords = journals.length > 0 
+        ? Math.round(journals.reduce((sum, j) => sum + (j.wordCount || 0), 0) / journals.length)
+        : 0;
+      document.getElementById('avgWordsPerEntry').textContent = avgWords;
+    }
+
+    function filterJournalEntries() {
+      const searchTerm = document.getElementById('journalSearchInput').value.toLowerCase();
+      const filterMood = document.getElementById('journalFilterMood').value;
+      const journals = DB.get('journals');
+
+      const filtered = journals.filter(j => {
+        const matchesSearch = !searchTerm || 
+          j.title.toLowerCase().includes(searchTerm) ||
+          j.entry.toLowerCase().includes(searchTerm) ||
+          (j.tags && j.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+        
+        const matchesMood = !filterMood || j.mood === filterMood;
+
+        return matchesSearch && matchesMood;
+      });
+
+      const container = document.getElementById('journalHistory');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="insight">No entries match your search.</div>';
+        return;
+      }
+
+      const moodEmojis = {
+        'great': '😊',
+        'good': '🙂',
+        'okay': '😐',
+        'bad': '😞',
+        'terrible': '😢'
+      };
+
+      container.innerHTML = filtered.map(j => {
+        const date = new Date(j.date);
+        const preview = j.entry.length > 150 ? j.entry.substring(0, 150) + '...' : j.entry;
+        const tagsHtml = j.tags && j.tags.length > 0 
+          ? `<div style="display:flex;gap:0.25rem;flex-wrap:wrap;margin-top:0.5rem">${j.tags.map(tag => 
+              `<span style="background:var(--primary);color:white;padding:0.125rem 0.5rem;border-radius:var(--radius-full);font-size:0.75rem">${tag}</span>`
+            ).join('')}</div>`
+          : '';
+
+        return `
+          <div class="data-item">
+            <div class="data-item-info" style="width:100%">
+              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.5rem">
+                <div class="data-item-title">${j.mood ? moodEmojis[j.mood] + ' ' : ''}${j.title}${j.isPrivate ? ' 🔒' : ''}</div>
+                <div class="data-item-meta">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              </div>
+              <div style="color:var(--text-secondary);font-size:0.875rem;line-height:1.5;margin-bottom:0.5rem">${preview}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">${j.wordCount} words</div>
+              ${tagsHtml}
+            </div>
+            <div class="entry-actions" style="margin-top:0.5rem">
+              <button class="edit-btn" onclick="viewJournalEntry('${j.id}')" aria-label="View full entry">
+                👁️ View
+              </button>
+              <button class="edit-btn" onclick="editJournalEntry('${j.id}')" aria-label="Edit journal entry">
+                ✏️ Edit
+              </button>
+              <button class="delete-btn" onclick="deleteJournalEntry('${j.id}')" aria-label="Delete journal entry">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function viewJournalEntry(id) {
+      const journals = DB.get('journals');
+      const entry = journals.find(j => j.id === id);
+      if (!entry) return;
+
+      const moodEmojis = {
+        'great': '😊 Great',
+        'good': '🙂 Good',
+        'okay': '😐 Okay',
+        'bad': '😞 Bad',
+        'terrible': '😢 Terrible'
+      };
+
+      const date = new Date(entry.date);
+      const tagsHtml = entry.tags && entry.tags.length > 0 
+        ? `<div style="margin-top:1rem"><strong>Tags:</strong> ${entry.tags.map(tag => 
+            `<span style="background:var(--primary);color:white;padding:0.25rem 0.625rem;border-radius:var(--radius-full);font-size:0.875rem;margin-left:0.25rem">${tag}</span>`
+          ).join('')}</div>`
+        : '';
+
+      const modalBody = `
+        <div style="padding:0.5rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+            <h3 style="margin:0">${entry.title}${entry.isPrivate ? ' 🔒' : ''}</h3>
+            <div style="font-size:0.875rem;color:var(--text-muted)">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+          </div>
+          ${entry.mood ? `<div style="margin-bottom:1rem;font-weight:600">${moodEmojis[entry.mood]}</div>` : ''}
+          <div style="white-space:pre-wrap;line-height:1.6;color:var(--text-secondary)">${entry.entry}</div>
+          <div style="margin-top:1rem;font-size:0.875rem;color:var(--text-muted)">${entry.wordCount} words</div>
+          ${tagsHtml}
+        </div>
+      `;
+
+      document.getElementById('editModalBody').innerHTML = modalBody;
+      document.getElementById('edit-modal-title').textContent = 'Journal Entry';
+      document.getElementById('saveEditBtn').style.display = 'none';
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function editJournalEntry(id) {
+      const journals = DB.get('journals');
+      const entry = journals.find(j => j.id === id);
+      if (!entry) return;
+
+      document.getElementById('journalTitle').value = entry.title === 'Untitled Entry' ? '' : entry.title;
+      document.getElementById('journalEntry').value = entry.entry;
+      document.getElementById('journalTags').value = entry.tags ? entry.tags.join(', ') : '';
+      document.getElementById('journalPrivate').checked = entry.isPrivate || false;
+      
+      // Set mood button
+      if (entry.mood) {
+        document.querySelectorAll('.journal-mood-btn').forEach(btn => {
+          if (btn.dataset.mood === entry.mood) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      // Update word count
+      const words = entry.entry.split(/\s+/).length;
+      document.getElementById('wordCount').textContent = `${words} word${words !== 1 ? 's' : ''}`;
+
+      // Delete the old entry
+      deleteJournalEntry(id, true);
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      alert('Entry loaded for editing. Make your changes and save.');
+    }
+
+    function deleteJournalEntry(id, silent = false) {
+      if (!silent && !confirm('Are you sure you want to delete this journal entry? This cannot be undone.')) {
+        return;
+      }
+
+      const journals = DB.get('journals');
+      const filtered = journals.filter(j => j.id !== id);
+      DB.set('journals', filtered);
+
+      if (!silent) {
+        alert('Journal entry deleted.');
+      }
+      
+      loadJournalEntries();
+      updateJournalStats();
+    }
+
 
     // ============================================
     // CHART.JS WELLNESS TRENDS VISUALIZATION
@@ -8675,6 +9102,8 @@
     
     loadSleepData();
     loadExerciseData();
+    loadJournalEntries();
+    updateJournalStats();
     updateDashboard();
     updateProfile();
     moodEmoji.textContent = moodEmojis[4];
