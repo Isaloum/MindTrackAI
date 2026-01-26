@@ -521,9 +521,6 @@
       box-shadow:0 4px 16px rgba(37,99,235,0.3);
       transform:translateY(-2px);
     }
-      box-shadow:0 4px 16px rgba(37,99,235,0.3);
-      transform:translateY(-2px);
-    }
     .med-tab.has-warnings{
       border-color:#fee2e2;
       background:linear-gradient(135deg, #fef2f2, #fff);
@@ -1487,11 +1484,12 @@
         <nav class="nav-tabs" role="navigation" aria-label="Main navigation">
           <button class="nav-tab active" data-tab="dashboard" aria-label="Dashboard" aria-current="page"><span class="icon" aria-hidden="true">📊</span><span>Dashboard</span></button>
           <button class="nav-tab" data-tab="mental" aria-label="Mental Health Tracker"><span class="icon" aria-hidden="true">🧠</span><span>Mental Health</span></button>
-          <button class="nav-tab" data-tab="medication" aria-label="Medication Tracker"><span class="icon" aria-hidden="true">💊</span><span>Medication</span></button>
+          <button class="nav-tab medication-toggle" data-tab="medication" aria-label="Medication Tracker" style="display:none"><span class="icon" aria-hidden="true">💊</span><span>Medication</span></button>
           <button class="nav-tab" data-tab="sleep" aria-label="Sleep Tracker"><span class="icon" aria-hidden="true">😴</span><span>Sleep</span></button>
           <button class="nav-tab" data-tab="exercise" aria-label="Exercise Tracker"><span class="icon" aria-hidden="true">🏃</span><span>Exercise</span></button>
           <button class="nav-tab" data-tab="journal" aria-label="Journal"><span class="icon" aria-hidden="true">📝</span><span>Journal</span></button>
         </nav>
+        <button id="toggleMedicationBtn" class="btn btn-secondary" style="margin-left:1rem" onclick="toggleMedicationTab()">Show Medication Tracker</button>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark/light mode" title="Toggle theme">
           <span id="themeIcon" aria-hidden="true">🌙</span>
         </button>
@@ -1502,6 +1500,13 @@
   <main id="main-content" class="container" tabindex="-1" role="main" aria-label="Main content">
     <!-- Dashboard -->
     <section id="dashboard" class="app-section active">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="font-weight:600;font-size:1.1rem">💊 Medication Tracker</div>
+          <button id="toggleMedicationBtn2" class="btn btn-secondary" onclick="toggleMedicationTab()">Show Medication Tracker</button>
+        </div>
+        <div style="font-size:0.95rem;color:var(--text-secondary);margin-top:0.5rem">You can enable or disable the medication tracking tab at any time.</div>
+      </div>
       <!-- Profile Card -->
       <div class="profile-card" id="profileCard">
         <div class="profile-avatar" aria-hidden="true">👤</div>
@@ -2388,6 +2393,162 @@
 
   <script>
     // ============================================
+    // ANALYTICS TRACKING SYSTEM (Privacy-Focused)
+    // ============================================
+    const Analytics = {
+      track: function(category, action, label = null) {
+        try {
+          const events = DB.get('analytics') || [];
+          events.push({
+            category,
+            action,
+            label,
+            timestamp: new Date().toISOString(),
+            // No PII - only feature usage tracking
+          });
+          // Keep only last 1000 events for privacy
+          if (events.length > 1000) events.shift();
+          DB.set('analytics', events);
+        } catch (error) {
+          console.warn('Analytics tracking failed:', error);
+        }
+      },
+      
+      getStats: function() {
+        const events = DB.get('analytics') || [];
+        const stats = {
+          totalEvents: events.length,
+          byCategory: {},
+          byAction: {},
+          last7Days: 0
+        };
+        
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        
+        events.forEach(event => {
+          // Count by category
+          stats.byCategory[event.category] = (stats.byCategory[event.category] || 0) + 1;
+          // Count by action
+          stats.byAction[event.action] = (stats.byAction[event.action] || 0) + 1;
+          // Count recent events
+          if (new Date(event.timestamp) >= sevenDaysAgo) {
+            stats.last7Days++;
+          }
+        });
+        
+        return stats;
+      }
+    };
+
+    // ============================================
+    // ERROR HANDLING UTILITIES
+    // ============================================
+    const ErrorHandler = {
+      handle: function(error, context = 'Unknown', userMessage = null) {
+        // Log error for debugging
+        console.error(`[${context}] Error:`, error);
+        
+        // Track error anonymously
+        Analytics.track('Error', context, error.message);
+        
+        // Show user-friendly message
+        if (userMessage) {
+          this.showErrorToast(userMessage);
+        }
+        
+        return null; // Return safe default
+      },
+      
+      showErrorToast: function(message) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #ef4444;
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 10000;
+          max-width: 400px;
+          animation: slideIn 0.3s ease;
+        `;
+        toast.textContent = '⚠️ ' + message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 5000);
+      },
+      
+      wrap: function(fn, context) {
+        return async function(...args) {
+          try {
+            return await fn.apply(this, args);
+          } catch (error) {
+            return ErrorHandler.handle(error, context, 
+              'An error occurred. Please try again.');
+          }
+        };
+      }
+    };
+
+    // ============================================
+    // INPUT VALIDATION & SANITIZATION
+    // ============================================
+    const InputValidator = {
+      sanitizeHTML: function(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      },
+      
+      sanitizeString: function(str, maxLength = 500) {
+        if (!str) return '';
+        str = String(str).trim();
+        if (str.length > maxLength) {
+          str = str.substring(0, maxLength);
+        }
+        return this.sanitizeHTML(str);
+      },
+      
+      validateNumber: function(value, min = null, max = null) {
+        const num = parseFloat(value);
+        if (isNaN(num)) return { valid: false, error: 'Must be a number' };
+        if (min !== null && num < min) return { valid: false, error: `Must be at least ${min}` };
+        if (max !== null && num > max) return { valid: false, error: `Must be at most ${max}` };
+        return { valid: true, value: num };
+      },
+      
+      validateEmail: function(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      },
+      
+      validateDate: function(dateStr) {
+        const date = new Date(dateStr);
+        return date instanceof Date && !isNaN(date);
+      },
+      
+      sanitizeFormData: function(formData) {
+        const sanitized = {};
+        for (const [key, value] of Object.entries(formData)) {
+          if (typeof value === 'string') {
+            sanitized[key] = this.sanitizeString(value);
+          } else if (typeof value === 'number') {
+            sanitized[key] = value;
+          } else {
+            sanitized[key] = value;
+          }
+        }
+        return sanitized;
+      }
+    };
+
+    // ============================================
     // INITIALIZATION & DEBUG LOGGING
     // ============================================
     console.log('=== MindTrackAI Loading ===');
@@ -2652,45 +2813,60 @@
     // SHARE & EXPORT FUNCTIONS
     // ============================================
     function shareProgress() {
-      const wellness = document.getElementById('wellnessScore').textContent;
-      const text = `I'm tracking my wellness with MindTrackAI! My current wellness score is ${wellness}/100. 🧠💪`;
-      
-      if (navigator.share) {
-        navigator.share({
-          title: 'My MindTrackAI Progress',
-          text: text,
-          url: 'https://isaloum.github.io/MindTrackAI'
-        }).catch(err => console.log('Share cancelled'));
-      } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(text + '\nhttps://isaloum.github.io/MindTrackAI')
-          .then(() => alert('Progress copied to clipboard! 📋'))
-          .catch(() => alert('Share text: ' + text));
+      try {
+        Analytics.track('Engagement', 'Share', 'Progress');
+        const wellness = document.getElementById('wellnessScore').textContent;
+        const text = `I'm tracking my wellness with MindTrackAI! My current wellness score is ${wellness}/100. 🧠💪`;
+        
+        if (navigator.share) {
+          navigator.share({
+            title: 'My MindTrackAI Progress',
+            text: text,
+            url: 'https://isaloum.github.io/MindTrackAI'
+          }).catch(err => console.log('Share cancelled'));
+        } else {
+          // Fallback: copy to clipboard
+          navigator.clipboard.writeText(text + '\nhttps://isaloum.github.io/MindTrackAI')
+            .then(() => alert('Progress copied to clipboard! 📋'))
+            .catch(() => alert('Share text: ' + text));
+        }
+      } catch (error) {
+        ErrorHandler.handle(error, 'shareProgress', 'Failed to share progress');
       }
     }
 
     function exportData() {
-      const data = {
-        profile: {
-          name: DB.getOne('userName'),
-          exportDate: new Date().toISOString()
-        },
-        moods: DB.get('moods'),
-        medications: DB.get('medications'),
-        sleeps: DB.get('sleeps'),
-        exercises: DB.get('exercises')
-      };
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `stepsync-export-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      // Record backup date
-      localStorage.setItem('mindtrack_lastBackupDate', new Date().getTime().toString());
+      try {
+        Analytics.track('Data', 'Export', 'JSON');
+        const data = {
+          profile: {
+            name: DB.getOne('userName'),
+            exportDate: new Date().toISOString()
+          },
+          moods: DB.get('moods'),
+          medications: DB.get('medications'),
+          medicationDefinitions: DB.get('medicationDefinitions'),
+          medicationLogs: DB.get('medicationLogs'),
+          sideEffects: DB.get('sideEffects'),
+          sleeps: DB.get('sleeps'),
+          exercises: DB.get('exercises'),
+          journalEntries: DB.get('journalEntries')
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mindtrack-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        // Record backup date
+        localStorage.setItem('mindtrack_lastBackupDate', new Date().getTime().toString());
+        showToast('✅ Data exported successfully!');
+      } catch (error) {
+        ErrorHandler.handle(error, 'exportData', 'Failed to export data. Please try again.');
+      }
     }
     
     // ============================================
@@ -3267,13 +3443,45 @@
     // Centralized tab switching function
     function switchTab(tabName) {
       // Update desktop nav tabs
-      document.querySelectorAll('.nav-tab').forEach(t => {
-        t.classList.remove('active');
-        t.removeAttribute('aria-current');
-        if (t.dataset.tab === tabName) {
-          t.classList.add('active');
-          t.setAttribute('aria-current', 'page');
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+          document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Medication tab toggle logic
+      function toggleMedicationTab() {
+        const medTab = document.querySelector('.nav-tab.medication-toggle');
+        const medSection = document.getElementById('medication');
+        const btn1 = document.getElementById('toggleMedicationBtn');
+        const btn2 = document.getElementById('toggleMedicationBtn2');
+        const isVisible = medTab.style.display !== 'none';
+        if (isVisible) {
+          medTab.style.display = 'none';
+          if (medSection) medSection.style.display = 'none';
+          if (btn1) btn1.textContent = 'Show Medication Tracker';
+          if (btn2) btn2.textContent = 'Show Medication Tracker';
+        } else {
+          medTab.style.display = '';
+          if (medSection) medSection.style.display = '';
+          if (btn1) btn1.textContent = 'Hide Medication Tracker';
+          if (btn2) btn2.textContent = 'Hide Medication Tracker';
         }
+      }
+
+      // Hide medication tab/section by default on load
+      window.addEventListener('DOMContentLoaded', () => {
+        const medTab = document.querySelector('.nav-tab.medication-toggle');
+        const medSection = document.getElementById('medication');
+        if (medTab) medTab.style.display = 'none';
+        if (medSection) medSection.style.display = 'none';
+        const btn1 = document.getElementById('toggleMedicationBtn');
+        const btn2 = document.getElementById('toggleMedicationBtn2');
+        if (btn1) btn1.textContent = 'Show Medication Tracker';
+        if (btn2) btn2.textContent = 'Show Medication Tracker';
       });
       
       // Update mobile nav buttons
@@ -9320,7 +9528,7 @@
       });
       
       // Save preference
-      localStorage.setItem('stepsync_activeTab', tabName);
+      localStorage.setItem('mindtrack_activeTab', tabName);
       
       // CRITICAL: Check interactions when switching to the interactions tab
       if (tabName === 'interactions') {
