@@ -1919,7 +1919,7 @@
             </div>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="addMedication()" style="margin-top:1.5rem">➕ Add to Tracker</button>
+        <button class="btn btn-primary" onclick="addMedication()" id="addMedicationBtn" style="margin-top:1.5rem">➕ Add to Tracker</button>
       </div>
 
       <!-- Medication Tabs -->
@@ -7143,9 +7143,18 @@
     // Add new medication definition
     function addMedication() {
       console.log('🔵 addMedication() called');
-      const type = document.getElementById('medType').value; // prescription, otc, or supplement
-      const nameInput = document.getElementById('medName');
-      const name = nameInput.value.trim();
+      
+      // Add visual feedback
+      const btn = document.getElementById('addMedicationBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Adding...';
+      }
+      
+      try {
+        const type = document.getElementById('medType')?.value; // prescription, otc, or supplement
+        const nameInput = document.getElementById('medName');
+        const name = nameInput?.value?.trim() || '';
       const rxcui = nameInput.getAttribute('data-rxcui') || null;
       
       // Get dosage from amount + unit fields
@@ -7159,12 +7168,22 @@
       
       console.log('Form values:', { type, name, amount, unit, dosage, time });
       
-      if (!name) return alert('Please enter medication/supplement name');
+      if (!name) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '➕ Add to Tracker';
+        }
+        return alert('Please enter medication/supplement name');
+      }
       
       // CRITICAL: Validate dosage range to prevent dangerous amounts
       if (amount && unit) {
         const rangeValidation = validateDosageRange(amount, unit);
         if (!rangeValidation.valid) {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '➕ Add to Tracker';
+          }
           return alert(rangeValidation.message + '\n\nPlease verify the dosage with your healthcare provider.');
         }
       }
@@ -7178,30 +7197,48 @@
       if (duplicate) {
         alert('⚠️ "' + name + '" is already in your list!\n\nPlease check "Your Medications" section below.');
         // Clear form
-        nameInput.value = '';
-        nameInput.removeAttribute('data-rxcui');
+        if (nameInput) {
+          nameInput.value = '';
+          nameInput.removeAttribute('data-rxcui');
+        }
         if (amountInput) amountInput.value = '';
         if (unitSelect) unitSelect.value = '';
         const detectedBox = document.getElementById('dosageDetected');
         const warningBox = document.getElementById('dosageWarning');
         if (detectedBox) detectedBox.innerHTML = '';
         if (warningBox) warningBox.innerHTML = '';
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '➕ Add to Tracker';
+        }
         return;
       }
       
       // CRITICAL: Validate dosage FIRST (before anything else)
       if (!dosage || !amount || !unit) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '➕ Add to Tracker';
+        }
         return alert('❌ REQUIRED\n\nPlease enter both a dosage amount and select a unit.');
       }
       
       // Check if dosage contains ANY number at all
       if (!/\d/.test(dosage)) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '➕ Add to Tracker';
+        }
         return alert('❌ INVALID DOSAGE\n\nDosage must contain a number (e.g., "500mg", "1 tablet", "5ml").\n\nYou entered: "' + dosage + '"');
       }
       
       // CRITICAL: Check if dosage has a unit (not just a number)
       const parsedDosage = parseDosage(dosage);
       if (!parsedDosage || !parsedDosage.unit) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '➕ Add to Tracker';
+        }
         return alert('❌ MISSING UNIT\n\nPlease include a unit with your dosage.\n\nExamples:\n• 500 mg (not just "500")\n• 2 tablets (not just "2")\n• 10 mL (not just "10")\n\nYou entered: "' + dosage + '"');
       }
       
@@ -7505,6 +7542,24 @@
       loadMedicationHistory(); // Update history view
       loadSupplements();
       scheduleInteractionRecheck('add-med');
+      
+      // Re-enable button and show success feedback
+      if (btn) {
+        btn.innerHTML = '✅ Added!';
+        setTimeout(() => {
+          btn.innerHTML = '➕ Add to Tracker';
+          btn.disabled = false;
+        }, 1500);
+      }
+      }
+      
+      } catch (error) {
+        console.error('❌ Error in addMedication():', error);
+        alert('An error occurred while adding the medication. Please try again.\n\nError: ' + error.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '➕ Add to Tracker';
+        }
       }
     }
 
