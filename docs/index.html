@@ -33,51 +33,7 @@
   </style>
 </head>
 <body>
-    .grid-col-6{grid-column:span 6}
-    .grid-col-4{grid-column:span 4}
-    .grid-col-3{grid-column:span 3}
-    @media(max-width:1024px){
-      .grid-col-8,.grid-col-6,.grid-col-4,.grid-col-3{grid-column:span 12}
-    }
-
-    /* App Sections (Tabs) */
-    .app-section{display:none}
-    .app-section.active{display:block}
-
-    /* Cards - White, minimal shadow, subtle border */
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius-lg);
-      padding:1.5rem;
-      box-shadow:0 1px 3px var(--shadow);
-      transition:var(--transition);
-    }
-    .card:hover{
-      box-shadow:0 4px 12px var(--shadow-md);
-    }
-    .card-title{
-      font-size:1.125rem;
-      font-weight:600;
-      margin-bottom:1rem;
-      color:var(--text);
-      letter-spacing:-0.01em;
-    }
-    .card-compact{padding:1.25rem}
-    .card-flat{box-shadow:none}
-
-    /* Forms - Clean, spacious */
-    .form-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:1rem;
-    }
-    .form-group{margin-bottom:1rem}
-    .form-group label{
-      display:block;
-      font-weight:500;
-      margin-bottom:.5rem;
-      color:var(--text-secondary);
+    <!-- ...existing code... -->
       font-size:.875rem;
       letter-spacing:0.01em;
     }
