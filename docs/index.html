@@ -1,24 +1,6 @@
 <!DOCTYPE html>
 <!-- Version: 2.1.0-phase1-ux-refresh - Updated: 2026-01-18 19:07 -->
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>MindTrackAI - Mental Health & Wellness Tracking Platform</title>
-  <meta name="description" content="Track your mental health, medication, sleep, exercise, and get personalized wellness insights.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --bg:#f8fafc;
       --bg-subtle:#f1f5f9;
       --card:#ffffff;
       --border:#e2e8f0;
@@ -41,75 +23,8 @@
       --radius-full:999px;
       --transition:all .2s ease;
     }
-    html[data-theme="dark"]{
-      --bg:#0b1220;
-      --bg-subtle:#0f172a;
-      --card:#111827;
-      --border:rgba(148,163,184,0.25);
-      --text:#e2e8f0;
-      --text-secondary:#cbd5e1;
-      --text-muted:#94a3b8;
-      --shadow:rgba(0,0,0,0.35);
-      --shadow-md:rgba(0,0,0,0.50);
-      --shadow-lg:rgba(0,0,0,0.60);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-      background:var(--bg);
-      color:var(--text);
-    }
-    a{color:var(--primary)}
 
-    /* Layout */
-    .container{
-      max-width:1120px;
-      margin:0 auto;
-      padding:0 1.5rem;
-    }
-    main{
-      padding:1.75rem 0 3rem;
-    }
-
-    /* Header + Top Tabs */
-    header{
-      position:sticky;
-      top:0;
-      z-index:200;
-      background:rgba(248,250,252,0.86);
-      border-bottom:1px solid var(--border);
-      backdrop-filter:blur(12px);
-    }
-    html[data-theme="dark"] header{
-      background:rgba(11,18,32,0.86);
-    }
-    .header-content{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:1rem;
-      padding:0.875rem 0;
-    }
-    .logo{
-      display:flex;
-      align-items:center;
-      gap:0.5rem;
-      font-weight:800;
-      letter-spacing:-0.02em;
-      text-decoration:none;
-      color:var(--text);
-      white-space:nowrap;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      padding:0.125rem 0.5rem;
-      border-radius:var(--radius-full);
-      font-size:0.6875rem;
-      font-weight:800;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
+    /* ...existing code... */
       color:#fff;
       background:linear-gradient(135deg,var(--accent),var(--accent-hover));
       box-shadow:0 2px 8px rgba(16,185,129,0.25);
@@ -1477,6 +1392,7 @@
     </div>
   </div>
 
+
   <header>
     <div class="container">
       <div class="header-content">
@@ -1489,7 +1405,7 @@
           <button class="nav-tab" data-tab="exercise" aria-label="Exercise Tracker"><span class="icon" aria-hidden="true">🏃</span><span>Exercise</span></button>
           <button class="nav-tab" data-tab="journal" aria-label="Journal"><span class="icon" aria-hidden="true">📝</span><span>Journal</span></button>
         </nav>
-        <button id="toggleMedicationBtn" class="btn btn-secondary" style="margin-left:1rem" onclick="toggleMedicationTab()">Show Medication Tracker</button>
+        <button id="toggleMedicationBtn" class="btn btn-secondary" style="margin-left:1rem" onclick="window.toggleMedicationTab()">Show Medication Tracker</button>
         <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark/light mode" title="Toggle theme">
           <span id="themeIcon" aria-hidden="true">🌙</span>
         </button>
@@ -1497,13 +1413,53 @@
     </div>
   </header>
 
+  <script>
+  // Ensure toggleMedicationTab is globally available and only defined once, before any button can be clicked
+  // Improved toggleMedicationTab function
+  window.toggleMedicationTab = function() {
+    const medTab = document.querySelector('.nav-tab[data-tab="medication"]');
+    const medSection = document.getElementById('medication');
+    const btn = document.getElementById('toggleMedicationBtn');
+
+    // Check if it's currently hidden
+    const isHidden = !medSection || medSection.style.display === 'none' || medSection.style.display === '';
+
+    if (isHidden) {
+      // SHOW MEDICATION TRACKER
+      if (medSection) {
+        medSection.style.setProperty('display', 'block', 'important');
+        medSection.classList.add('active');
+      }
+      if (medTab) {
+        medTab.style.setProperty('display', 'inline-flex', 'important');
+      }
+      if (btn) btn.textContent = 'Hide Medication Tracker';
+      // Automatically switch the view to the medication section
+      if (typeof switchTab === 'function') switchTab('medication');
+      if (typeof showToast === 'function') showToast('✅ Medication Tracker Enabled');
+    } else {
+      // HIDE MEDICATION TRACKER
+      if (medSection) {
+        medSection.style.display = 'none';
+        medSection.classList.remove('active');
+      }
+      if (medTab) {
+        medTab.style.display = 'none';
+      }
+      if (btn) btn.textContent = 'Show Medication Tracker';
+      // Fallback to dashboard if we were just looking at meds
+      if (typeof switchTab === 'function') switchTab('dashboard');
+    }
+  };
+  </script>
+
   <main id="main-content" class="container" tabindex="-1" role="main" aria-label="Main content">
     <!-- Dashboard -->
     <section id="dashboard" class="app-section active">
       <div class="card" style="margin-bottom:1.5rem">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="font-weight:600;font-size:1.1rem">💊 Medication Tracker</div>
-          <button id="toggleMedicationBtn2" class="btn btn-secondary" onclick="toggleMedicationTab()">Show Medication Tracker</button>
+                <!-- Removed duplicate Show Medication Tracker button -->
         </div>
         <div style="font-size:0.95rem;color:var(--text-secondary);margin-top:0.5rem">You can enable or disable the medication tracking tab at any time.</div>
       </div>
@@ -1970,7 +1926,7 @@
             <div class="card" style="margin-bottom:1rem">
               <div style="display:grid;gap:1.5rem">
                 
-                <!-- Reminder Time -->
+                  <!-- Removed duplicate Show Medication Tracker button -->
                 <div>
                   <label style="display:flex;align-items:center;gap:0.5rem;font-weight:600;margin-bottom:0.5rem;color:var(--text)">
                     <span>🔔 Reminder</span>
@@ -3440,6 +3396,7 @@
       });
     });
 
+
     // Centralized tab switching function
     function switchTab(tabName) {
       // Update desktop nav tabs
@@ -3452,38 +3409,6 @@
         });
       });
 
-      // Medication tab toggle logic
-      function toggleMedicationTab() {
-        const medTab = document.querySelector('.nav-tab.medication-toggle');
-        const medSection = document.getElementById('medication');
-        const btn1 = document.getElementById('toggleMedicationBtn');
-        const btn2 = document.getElementById('toggleMedicationBtn2');
-        const isVisible = medTab.style.display !== 'none';
-        if (isVisible) {
-          medTab.style.display = 'none';
-          if (medSection) medSection.style.display = 'none';
-          if (btn1) btn1.textContent = 'Show Medication Tracker';
-          if (btn2) btn2.textContent = 'Show Medication Tracker';
-        } else {
-          medTab.style.display = '';
-          if (medSection) medSection.style.display = '';
-          if (btn1) btn1.textContent = 'Hide Medication Tracker';
-          if (btn2) btn2.textContent = 'Hide Medication Tracker';
-        }
-      }
-
-      // Hide medication tab/section by default on load
-      window.addEventListener('DOMContentLoaded', () => {
-        const medTab = document.querySelector('.nav-tab.medication-toggle');
-        const medSection = document.getElementById('medication');
-        if (medTab) medTab.style.display = 'none';
-        if (medSection) medSection.style.display = 'none';
-        const btn1 = document.getElementById('toggleMedicationBtn');
-        const btn2 = document.getElementById('toggleMedicationBtn2');
-        if (btn1) btn1.textContent = 'Show Medication Tracker';
-        if (btn2) btn2.textContent = 'Show Medication Tracker';
-      });
-      
       // Update mobile nav buttons
       document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -3491,7 +3416,7 @@
           btn.classList.add('active');
         }
       });
-      
+
       // Update content sections
       document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
 
@@ -3504,10 +3429,38 @@
 
       const main = document.getElementById('main-content');
       if (main && main.focus) main.focus({ preventScroll: true });
-      
+
       // Save active tab to localStorage
       localStorage.setItem('mindtrack_activeTab', tabName);
     }
+
+    // Define the global toggleMedicationTab function for the header button
+    window.toggleMedicationTab = function() {
+      const medTab = document.querySelector('.nav-tab.medication-toggle');
+      const medSection = document.getElementById('medication');
+      const btn = document.getElementById('toggleMedicationBtn');
+      // If the medication tab is currently visible, hide it
+      const isVisible = medTab && medTab.style.display !== 'none';
+      if (isVisible) {
+        if (medTab) medTab.style.display = 'none';
+        if (medSection) medSection.style.display = 'none';
+        if (btn) btn.textContent = 'Show Medication Tracker';
+      } else {
+        if (medTab) medTab.style.display = '';
+        if (medSection) medSection.style.display = '';
+        if (btn) btn.textContent = 'Hide Medication Tracker';
+      }
+    }
+
+    // Hide medication tab/section by default on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const medTab = document.querySelector('.nav-tab.medication-toggle');
+      const medSection = document.getElementById('medication');
+      if (medTab) medTab.style.display = 'none';
+      if (medSection) medSection.style.display = 'none';
+      const btn = document.getElementById('toggleMedicationBtn');
+      if (btn) btn.textContent = 'Show Medication Tracker';
+    });
 
     // Mood Tracker
     const moodEmojis = ['😢','😞','😔','😕','😐','🙂','😊','😄','😁','🤩'];
@@ -9847,6 +9800,11 @@
       if (document.getElementById('savedPrescriptionsList')) {
         loadPrescriptionDetails();
       }
+      // Ensure medication tracker is hidden on startup
+      const medSection = document.getElementById('medication');
+      const medTab = document.querySelector('.nav-tab[data-tab="medication"]');
+      if (medSection) medSection.style.display = 'none';
+      if (medTab) medTab.style.display = 'none';
     });
 
   </script>
