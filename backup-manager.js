@@ -454,18 +454,16 @@ class BackupManager {
                 }
             }
 
-            // Enforce max backups limit (keep newest)
-            if (backups.length > this.maxBackups) {
-                const toDelete = backups.slice(this.maxBackups);
+            // Enforce max backups limit (keep newest, but always preserve protected)
+            const protectedTags = ['important', 'manual'];
+            const isProtected = backup => backup.tags && protectedTags.some(tag => backup.tags.includes(tag));
+            const nonProtectedBackups = backups.filter(b => !isProtected(b));
+            if (nonProtectedBackups.length > this.maxBackups) {
+                const toDelete = nonProtectedBackups.slice(this.maxBackups);
                 for (const backup of toDelete) {
-                    const isProtected = backup.tags &&
-                        (backup.tags.includes('important') || backup.tags.includes('manual'));
-
-                    if (!isProtected) {
-                        this.deleteBackup(backup.id);
-                        removedCount++;
-                        keptCount--;
-                    }
+                    this.deleteBackup(backup.id);
+                    removedCount++;
+                    keptCount--;
                 }
             }
 

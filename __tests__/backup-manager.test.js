@@ -272,6 +272,8 @@ describe('BackupManager', () => {
             backup.cleanupOldBackups();
 
             const backups = backup.listBackups();
+            // Debug output: print tags of remaining backups
+            console.log('Remaining backups after cleanup:', backups.map(b => b.tags));
             expect(backups.length).toBe(2); // important and manual preserved
         });
 
