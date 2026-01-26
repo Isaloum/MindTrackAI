@@ -20,9 +20,15 @@ try {
     PregnancyRiskCalculator = require('bumpie-meds/src/services/pregnancy-risk-calculator');
     PregnancyAuditLogger = require('bumpie-meds/src/services/pregnancy-audit-logger');
 } catch (error) {
-    console.warn('⚠️  Warning: bumpie-meds pregnancy safety modules not available.');
-    console.warn('   Pregnancy safety features will be disabled.');
-    console.warn('   To enable these features, install the bumpie-meds package.');
+    // Only suppress MODULE_NOT_FOUND errors; re-throw other errors like syntax errors
+    if (error.code === 'MODULE_NOT_FOUND') {
+        console.warn('⚠️  Warning: bumpie-meds pregnancy safety modules not available.');
+        console.warn('   Pregnancy safety features will be disabled.');
+        console.warn('   To enable these features, install the bumpie-meds package.');
+    } else {
+        // Re-throw non-module-not-found errors (e.g., syntax errors in the module)
+        throw error;
+    }
 }
 
 class MedicationTracker {
