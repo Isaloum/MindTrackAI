@@ -8,10 +8,22 @@ const EnhancedMedicationManager = require('./enhanced-medication-manager');
 const MedicationValidator = require('./medication-validator');
 
 // Pregnancy Safety Integration - Import as modules, not classes
-const PregnancySafetyEngine = require('bumpie-meds/src/services/pregnancy-safety-engine');
-const PregnancyInteractionChecker = require('bumpie-meds/src/services/pregnancy-interaction-checker');
-const PregnancyRiskCalculator = require('bumpie-meds/src/services/pregnancy-risk-calculator');
-const PregnancyAuditLogger = require('bumpie-meds/src/services/pregnancy-audit-logger');
+// These modules are optional dependencies
+let PregnancySafetyEngine = null;
+let PregnancyInteractionChecker = null;
+let PregnancyRiskCalculator = null;
+let PregnancyAuditLogger = null;
+
+try {
+    PregnancySafetyEngine = require('bumpie-meds/src/services/pregnancy-safety-engine');
+    PregnancyInteractionChecker = require('bumpie-meds/src/services/pregnancy-interaction-checker');
+    PregnancyRiskCalculator = require('bumpie-meds/src/services/pregnancy-risk-calculator');
+    PregnancyAuditLogger = require('bumpie-meds/src/services/pregnancy-audit-logger');
+} catch (error) {
+    console.warn('⚠️  Warning: bumpie-meds pregnancy safety modules not available.');
+    console.warn('   Pregnancy safety features will be disabled.');
+    console.warn('   To enable these features, install the bumpie-meds package.');
+}
 
 class MedicationTracker {
     constructor(dataFile = 'medications.json') {
@@ -732,13 +744,24 @@ class MedicationTracker {
      */
     async checkPregnancySafety(medicationName, weekOfPregnancy, options = {}) {
         try {
+            // Check if pregnancy safety modules are available
+            if (!this.pregnancySafety) {
+                console.warn('⚠️  Pregnancy safety check unavailable - modules not loaded');
+                return {
+                    safe: false,
+                    error: 'Pregnancy safety modules not available',
+                    recommendation: 'Unable to assess safety - consult healthcare provider immediately',
+                    warning: 'The bumpie-meds package is required for pregnancy safety checks'
+                };
+            }
+
             const safetyResult = await this.pregnancySafety.checkMedicationSafety(
                 medicationName,
                 weekOfPregnancy
             );
 
             // Check for pregnancy-specific interactions if taking other medications
-            if (this.data.medications && this.data.medications.length > 0) {
+            if (this.pregnancyInteractions && this.data.medications && this.data.medications.length > 0) {
                 const currentMeds = this.data.medications
                     .filter(m => m.active)
                     .map(m => m.name);
@@ -756,7 +779,7 @@ class MedicationTracker {
             }
 
             // Log to audit trail
-            if (options.patientId) {
+            if (this.pregnancyAudit && options.patientId) {
                 await this.pregnancyAudit.logSafetyCheck({
                     patientId: options.patientId,
                     medicationName,
