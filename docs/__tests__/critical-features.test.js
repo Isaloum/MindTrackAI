@@ -75,7 +75,12 @@ const Analytics = {
 const ErrorHandler = {
   handle(error, context = 'Unknown') {
     console.error(`[${context}]`, error);
-    Analytics.track('Error', context, error.message);
+    try {
+      Analytics.track('Error', context, error.message);
+    } catch (trackingError) {
+      // Ignore tracking errors to prevent infinite loops
+      console.warn('Failed to track error in analytics:', trackingError.message);
+    }
     return null;
   },
   
@@ -338,11 +343,23 @@ describe('Input Validation & Sanitization', () => {
 });
 
 describe('Error Handling', () => {
+  let originalSetItem;
+  
+  beforeEach(() => {
+    // Save the original implementation before each test
+    originalSetItem = global.localStorage.setItem;
+  });
+  
+  afterEach(() => {
+    // Restore after each test
+    if (originalSetItem) {
+      global.localStorage.setItem = originalSetItem;
+    }
+  });
   
   test('should handle database errors gracefully', () => {
     // Simulate localStorage failure
-    const originalSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = () => {
+    global.localStorage.setItem = () => {
       throw new Error('QuotaExceededError');
     };
     
@@ -351,9 +368,6 @@ describe('Error Handling', () => {
         localStorage.setItem('test', 'data');
       }, 'Database')();
     }).not.toThrow();
-    
-    // Restore
-    Storage.prototype.setItem = originalSetItem;
   });
 
   test('should track errors in analytics', () => {
