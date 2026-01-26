@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <!-- Version: 2.1.0-phase1-ux-refresh - Updated: 2026-01-18 19:07 -->
 <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindTrackAI</title>
+  <style>
+    :root {
       --bg-subtle:#f1f5f9;
       --card:#ffffff;
       --border:#e2e8f0;
@@ -23,81 +29,10 @@
       --radius-full:999px;
       --transition:all .2s ease;
     }
-
     /* ...existing code... */
-      color:#fff;
-      background:linear-gradient(135deg,var(--accent),var(--accent-hover));
-      box-shadow:0 2px 8px rgba(16,185,129,0.25);
-    }
-    .nav-tabs{
-      display:flex;
-      align-items:center;
-      gap:1.25rem;
-      padding:0;
-      border:none;
-      background:transparent;
-      overflow:auto;
-      scrollbar-width:none;
-    }
-    .nav-tabs::-webkit-scrollbar{display:none}
-    .nav-tab{
-      appearance:none;
-      -webkit-appearance:none;
-      -moz-appearance:none;
-      background:transparent;
-      color:var(--text-secondary);
-      border:none !important;
-      outline:none !important;
-      border-radius:0;
-      padding:0.5rem 0;
-      cursor:pointer;
-      font-weight:700;
-      font-size:0.9rem;
-      display:inline-flex;
-      align-items:center;
-      gap:0.5rem;
-      white-space:nowrap;
-      line-height:1;
-      position:relative;
-      box-shadow:none !important;
-      text-decoration:none;
-      border-left:0 !important;
-      border-right:0 !important;
-      border-top:0 !important;
-      border-bottom:0 !important;
-    }
-    .nav-tab::before,
-    .nav-tab::after{
-      display:none !important;
-    }
-    .nav-tab .icon{
-      display:none;
-    }
-    .nav-tab:hover{
-      color:var(--text);
-      border:none !important;
-      outline:none !important;
-      box-shadow:none !important;
-    }
-    .nav-tab:focus{
-      outline:none !important;
-      border:none !important;
-      box-shadow:none !important;
-    }
-    .nav-tab:focus-visible{
-      outline:2px solid var(--primary);
-      outline-offset:2px;
-      border:none !important;
-    }
-    .nav-tab.active{
-      color:var(--primary);
-      font-weight:800;
-      border:none !important;
-      outline:none !important;
-      box-shadow:none !important;
-    }
-    .grid-col-12{grid-column:span 12}
-    .grid-col-8{grid-column:span 8}
+  </style>
+</head>
+<body>
     .grid-col-6{grid-column:span 6}
     .grid-col-4{grid-column:span 4}
     .grid-col-3{grid-column:span 3}
