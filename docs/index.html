@@ -1474,15 +1474,11 @@
     const medSection = document.getElementById('medication');
     const btn = document.getElementById('toggleMedicationBtn');
 
-    // Check if it's currently hidden
-    const isHidden = !medSection || medSection.style.display === 'none' || medSection.style.display === '';
+    // Check if the medication TAB BUTTON is currently hidden (this determines enabled/disabled state)
+    const isTabHidden = !medTab || medTab.style.display === 'none';
 
-    if (isHidden) {
-      // SHOW MEDICATION TRACKER
-      if (medSection) {
-        medSection.style.setProperty('display', 'block', 'important');
-        medSection.classList.add('active');
-      }
+    if (isTabHidden) {
+      // SHOW MEDICATION TRACKER - Enable the feature
       if (medTab) {
         medTab.style.setProperty('display', 'inline-flex', 'important');
       }
@@ -1491,37 +1487,23 @@
       if (typeof switchTab === 'function') switchTab('medication');
       if (typeof showToast === 'function') showToast('✅ Medication Tracker Enabled');
     } else {
-      // HIDE MEDICATION TRACKER
-      // FIRST: Immediately switch to dashboard to ensure content is visible
-      const dashboard = document.getElementById('dashboard');
-      const allSections = document.querySelectorAll('.app-section');
+      // HIDE MEDICATION TRACKER - Disable the feature
       
-      // Remove active class from all sections and hide them
-      allSections.forEach(section => {
-        section.classList.remove('active');
-        section.style.display = 'none';
-      });
+      // Check if user is currently viewing the medication section
+      const isOnMedicationTab = medSection && medSection.classList.contains('active');
       
-      // Make dashboard active and visible
-      if (dashboard) {
-        dashboard.classList.add('active');
-        dashboard.style.display = 'block';
+      // If user is on medication tab, switch them to dashboard first
+      if (isOnMedicationTab) {
+        if (typeof switchTab === 'function') switchTab('dashboard');
       }
       
-      // Update nav tabs
-      const allNavTabs = document.querySelectorAll('.nav-tab');
-      allNavTabs.forEach(tab => {
-        tab.classList.remove('active');
-        if (tab.getAttribute('data-tab') === 'dashboard') {
-          tab.classList.add('active');
-        }
-      });
-      
-      // THEN hide the medication tab button
+      // Hide the medication tab button
       if (medTab) {
         medTab.style.display = 'none';
       }
+      
       if (btn) btn.textContent = 'Show Medication Tracker';
+      if (typeof showToast === 'function') showToast('ℹ️ Medication Tracker Disabled');
     }
   };
   </script>
