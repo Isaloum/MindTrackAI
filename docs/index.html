@@ -7434,20 +7434,20 @@
       console.log('Current definitions before adding:', definitions.length);
 
       // Get reminder and refill tracking data
-      const enableReminder = document.getElementById('enableReminder').checked;
-      const reminderTime = document.getElementById('reminderTime').value;
-      const pillsRemaining = parseInt(document.getElementById('pillsRemaining').value) || null;
-      const daysSupply = parseInt(document.getElementById('daysSupply').value) || null;
+      const enableReminder = document.getElementById('enableReminder')?.checked || false;
+      const reminderTime = document.getElementById('reminderTime')?.value || null;
+      const pillsRemaining = parseInt(document.getElementById('pillsRemaining')?.value) || null;
+      const daysSupply = parseInt(document.getElementById('daysSupply')?.value) || null;
       
       // Get cost and pharmacy data
-      const costPerRefill = parseFloat(document.getElementById('costPerRefill').value) || null;
-      const insuranceCopay = parseFloat(document.getElementById('insuranceCopay').value) || null;
-      const pharmacyName = document.getElementById('pharmacyName').value.trim() || null;
+      const costPerRefill = parseFloat(document.getElementById('costPerRefill')?.value) || null;
+      const insuranceCopay = parseFloat(document.getElementById('insuranceCopay')?.value) || null;
+      const pharmacyName = document.getElementById('pharmacyName')?.value?.trim() || null;
       
       // Get prescription renewal data
-      const prescriptionExpiry = document.getElementById('prescriptionExpiry').value || null;
-      const pharmacyPhone = document.getElementById('pharmacyPhone').value.trim() || null;
-      const renewalAlertDays = parseInt(document.getElementById('renewalAlertDays').value) || null;
+      const prescriptionExpiry = document.getElementById('prescriptionExpiry')?.value || null;
+      const pharmacyPhone = document.getElementById('pharmacyPhone')?.value?.trim() || null;
+      const renewalAlertDays = parseInt(document.getElementById('renewalAlertDays')?.value) || null;
 
       const newMed = {
         id: Date.now(),
