@@ -1496,14 +1496,16 @@
       const dashboard = document.getElementById('dashboard');
       const allSections = document.querySelectorAll('.app-section');
       
-      // Remove active class from all sections
+      // Remove active class from all sections and hide them
       allSections.forEach(section => {
         section.classList.remove('active');
+        section.style.display = 'none';
       });
       
-      // Make dashboard active
+      // Make dashboard active and visible
       if (dashboard) {
         dashboard.classList.add('active');
+        dashboard.style.display = 'block';
       }
       
       // Update nav tabs
@@ -1515,11 +1517,7 @@
         }
       });
       
-      // THEN hide the medication section and tab
-      if (medSection) {
-        medSection.style.display = 'none';
-        medSection.classList.remove('active');
-      }
+      // THEN hide the medication tab button
       if (medTab) {
         medTab.style.display = 'none';
       }
