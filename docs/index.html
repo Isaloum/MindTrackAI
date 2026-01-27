@@ -3474,12 +3474,10 @@
     function switchTab(tabName) {
       // Update desktop nav tabs
       document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.remove('active');
+        if (tab.dataset.tab === tabName) {
           tab.classList.add('active');
-          document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
-          document.getElementById(tab.dataset.tab).classList.add('active');
-        });
+        }
       });
 
       // Update mobile nav buttons
@@ -3490,12 +3488,16 @@
         }
       });
 
-      // Update content sections
-      document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+      // Update content sections - hide all, show target
+      document.querySelectorAll('.app-section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none';
+      });
 
       const nextSection = document.getElementById(tabName);
       if (nextSection) {
         nextSection.classList.add('active');
+        nextSection.style.display = 'block';
       } else {
         console.warn('Unknown tab section:', tabName);
       }
@@ -3507,23 +3509,8 @@
       localStorage.setItem('mindtrack_activeTab', tabName);
     }
 
-    // Define the global toggleMedicationTab function for the header button
-    window.toggleMedicationTab = function() {
-      const medTab = document.querySelector('.nav-tab.medication-toggle');
-      const medSection = document.getElementById('medication');
-      const btn = document.getElementById('toggleMedicationBtn');
-      // If the medication tab is currently visible, hide it
-      const isVisible = medTab && medTab.style.display !== 'none';
-      if (isVisible) {
-        if (medTab) medTab.style.display = 'none';
-        if (medSection) medSection.style.display = 'none';
-        if (btn) btn.textContent = 'Show Medication Tracker';
-      } else {
-        if (medTab) medTab.style.display = '';
-        if (medSection) medSection.style.display = '';
-        if (btn) btn.textContent = 'Hide Medication Tracker';
-      }
-    }
+    // NOTE: toggleMedicationTab is defined earlier in the file before the header HTML
+    // This duplicate definition has been removed to prevent overwriting the correct implementation
 
     // Hide medication tab/section by default on load
     window.addEventListener('DOMContentLoaded', () => {
