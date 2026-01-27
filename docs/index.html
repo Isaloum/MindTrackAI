@@ -1492,9 +1492,15 @@
       if (typeof showToast === 'function') showToast('✅ Medication Tracker Enabled');
     } else {
       // HIDE MEDICATION TRACKER
-      // Check if user is currently on the medication tab
+      // Check if user is currently on the medication tab FIRST
       const currentlyOnMedicationTab = medSection && medSection.classList.contains('active');
       
+      // Switch to dashboard FIRST if user was on medication tab
+      if (currentlyOnMedicationTab && typeof switchTab === 'function') {
+        switchTab('dashboard');
+      }
+      
+      // Then hide the medication section and tab
       if (medSection) {
         medSection.style.display = 'none';
         medSection.classList.remove('active');
@@ -1503,11 +1509,6 @@
         medTab.style.display = 'none';
       }
       if (btn) btn.textContent = 'Show Medication Tracker';
-      
-      // Only switch to dashboard if user was on the medication tab
-      if (currentlyOnMedicationTab && typeof switchTab === 'function') {
-        switchTab('dashboard');
-      }
     }
   };
   </script>
