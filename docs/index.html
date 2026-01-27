@@ -7525,28 +7525,46 @@
       if (warningBox) warningBox.innerHTML = '';
 
       // Reset type dropdown to default
-      document.getElementById('medType').value = 'prescription';
+      const medTypeSelect = document.getElementById('medType');
+      if (medTypeSelect) medTypeSelect.value = 'prescription';
       
       // Clear reminder and refill fields
-      document.getElementById('enableReminder').checked = false;
-      document.getElementById('reminderTime').value = '';
-      document.getElementById('reminderTime').disabled = true;
-      document.getElementById('pillsRemaining').value = '';
-      document.getElementById('daysSupply').value = '';
+      const enableReminderCheckbox = document.getElementById('enableReminder');
+      const reminderTimeInput = document.getElementById('reminderTime');
+      const pillsRemainingInput = document.getElementById('pillsRemaining');
+      const daysSupplyInput = document.getElementById('daysSupply');
+      
+      if (enableReminderCheckbox) enableReminderCheckbox.checked = false;
+      if (reminderTimeInput) {
+        reminderTimeInput.value = '';
+        reminderTimeInput.disabled = true;
+      }
+      if (pillsRemainingInput) pillsRemainingInput.value = '';
+      if (daysSupplyInput) daysSupplyInput.value = '';
       
       // Clear cost and pharmacy fields
-      document.getElementById('costPerRefill').value = '';
-      document.getElementById('insuranceCopay').value = '';
-      document.getElementById('pharmacyName').value = '';
+      const costPerRefillInput = document.getElementById('costPerRefill');
+      const insuranceCopayInput = document.getElementById('insuranceCopay');
+      const pharmacyNameInput = document.getElementById('pharmacyName');
+      
+      if (costPerRefillInput) costPerRefillInput.value = '';
+      if (insuranceCopayInput) insuranceCopayInput.value = '';
+      if (pharmacyNameInput) pharmacyNameInput.value = '';
       
       // Clear prescription renewal fields
-      document.getElementById('prescriptionExpiry').value = '';
-      document.getElementById('pharmacyPhone').value = '';
-      document.getElementById('renewalAlertDays').value = '';
+      const prescriptionExpiryInput = document.getElementById('prescriptionExpiry');
+      const pharmacyPhoneInput = document.getElementById('pharmacyPhone');
+      const renewalAlertDaysInput = document.getElementById('renewalAlertDays');
+      
+      if (prescriptionExpiryInput) prescriptionExpiryInput.value = '';
+      if (pharmacyPhoneInput) pharmacyPhoneInput.value = '';
+      if (renewalAlertDaysInput) renewalAlertDaysInput.value = '';
 
       // Clear pregnancy fields
-      if (document.getElementById('isPregnant').checked) {
-        document.getElementById('pregnancyWarning').style.display = 'none';
+      const isPregnantCheckbox = document.getElementById('isPregnant');
+      const pregnancyWarning = document.getElementById('pregnancyWarning');
+      if (isPregnantCheckbox?.checked && pregnancyWarning) {
+        pregnancyWarning.style.display = 'none';
       }
 
       // Generate today's dose for this new medication
