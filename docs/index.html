@@ -1492,22 +1492,30 @@
       if (typeof showToast === 'function') showToast('✅ Medication Tracker Enabled');
     } else {
       // HIDE MEDICATION TRACKER
-      // Check if ALL sections to determine if medication is currently visible
+      // FIRST: Immediately switch to dashboard to ensure content is visible
+      const dashboard = document.getElementById('dashboard');
       const allSections = document.querySelectorAll('.app-section');
-      let medicationIsCurrentlyVisible = false;
       
+      // Remove active class from all sections
       allSections.forEach(section => {
-        if (section.id === 'medication' && section.classList.contains('active')) {
-          medicationIsCurrentlyVisible = true;
+        section.classList.remove('active');
+      });
+      
+      // Make dashboard active
+      if (dashboard) {
+        dashboard.classList.add('active');
+      }
+      
+      // Update nav tabs
+      const allNavTabs = document.querySelectorAll('.nav-tab');
+      allNavTabs.forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.getAttribute('data-tab') === 'dashboard') {
+          tab.classList.add('active');
         }
       });
       
-      // ALWAYS switch to dashboard if medication section was visible
-      if (medicationIsCurrentlyVisible && typeof switchTab === 'function') {
-        switchTab('dashboard');
-      }
-      
-      // Then hide the medication section and tab
+      // THEN hide the medication section and tab
       if (medSection) {
         medSection.style.display = 'none';
         medSection.classList.remove('active');
